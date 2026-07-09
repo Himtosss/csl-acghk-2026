@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSL × ACGHK 2026 — PROPOSAL v3 · ONE2LABS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@200;300;400;600;700;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{overflow:hidden}
+html::-webkit-scrollbar{display:none}
+body{background:#050506;font-family:'Inter','Noto Sans TC',sans-serif;color:#ccc;overflow-x:hidden}
+
+/* ═══════════ SLIDE BASE ═══════════ */
+.slide{
+  width:100vw;height:100vh;position:fixed;overflow:hidden;
+  top:0;left:0;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+.slide.active{opacity:1;pointer-events:auto}
+.noise{
+  position:absolute;inset:0;opacity:.025;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+.side-bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#FFD700 0%,rgba(255,215,0,.08) 100%);z-index:5}
+
+/* Top marquee strip */
+.strip{position:relative;height:30px;z-index:20;background:#FFD700;display:flex;align-items:center;overflow:hidden;white-space:nowrap;flex-shrink:0}
+.strip span{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;color:#000;padding-right:50px;animation:scroll-strip 24s linear infinite;display:inline-block}
+@keyframes scroll-strip{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* Panel split background (asymmetric right zone) */
+.panel-split{position:absolute;top:0;right:0;width:38%;height:100%;background:linear-gradient(180deg,#0d0d14 0%,#08080a 100%);clip-path:polygon(22% 0,100% 0,100% 100%,0% 100%);z-index:1}
+.panel-grid{position:absolute;top:0;right:0;width:38%;height:100%;clip-path:polygon(22% 0,100% 0,100% 100%,0% 100%);background-image:linear-gradient(rgba(255,215,0,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,215,0,.035) 1px,transparent 1px);background-size:56px 56px;opacity:.6;z-index:1}
+.hero-mark{position:absolute;right:40px;top:50%;transform:translateY(-50%);font-family:'Bebas Neue',sans-serif;font-weight:900;color:transparent;-webkit-text-stroke:1.2px rgba(255,215,0,.14);z-index:1;user-select:none;line-height:1}
+
+/* Sparkles */
+.spark{position:absolute;z-index:3;color:rgba(255,215,0,.4)}
+@keyframes sparkle{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.8;transform:scale(1.1)}}
+
+/* Content zone */
+.content{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 0 0 80px;width:58%}
+.content.wide{width:100%;padding:0 80px}
+.content.centered{align-items:center;text-align:center;padding:0 80px;width:100%}
+
+.eyebrow{display:inline-flex;align-items:center;gap:12px;margin-bottom:20px}
+.eyebrow .dot{width:5px;height:5px;background:#FFD700;border-radius:50%;box-shadow:0 0 6px rgba(255,215,0,.7);flex-shrink:0}
+.eyebrow span{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3.5px;color:rgba(255,215,0,.65);text-transform:uppercase}
+
+h1{font-family:'Bebas Neue',sans-serif;font-weight:900;color:#fff;line-height:.9;letter-spacing:1px}
+h2{font-family:'Bebas Neue',sans-serif;font-weight:900;color:#fff;font-size:56px;letter-spacing:2px;line-height:.95}
+h2 .accent{color:#FFD700}
+.tiny-label{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.25);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}
+
+/* Stat row (used repeatedly for credibility) */
+.stat-row{display:flex;margin-top:32px;border-top:1px solid rgba(255,255,255,.07)}
+.stat{flex:1;padding:16px 20px 0 0;border-right:1px solid rgba(255,255,255,.05)}
+.stat:last-child{border-right:none}
+.stat .num{font-family:'Bebas Neue',sans-serif;font-size:30px;color:#fff;font-weight:900}
+.stat .num .u{font-size:14px;color:rgba(255,215,0,.65);margin-left:2px}
+.stat .lbl{font-size:9px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+
+/* Readout (bottom-left tech text on every slide) */
+.readout{position:absolute;bottom:24px;left:80px;z-index:20;font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,229,255,.3);line-height:1.7;letter-spacing:.4px}
+.readout .hl{color:rgba(255,215,0,.45)}
+.pageno{position:absolute;bottom:24px;right:40px;z-index:20;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:2px}
+
+/* Nav dots */
+.nav{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;transition:all .3s}
+.nav-dot.active{background:#FFD700;box-shadow:0 0 6px rgba(255,215,0,.5);width:7px;height:7px}
+
+/* Card / move / timeline components (asymmetric variants) */
+.row-cards{display:flex;gap:0;margin-top:28px}
+.rc{flex:1;padding:0 24px 0 0;border-right:1px solid rgba(255,255,255,.05)}
+.rc:last-child{border-right:none}
+.rc .rc-num{font-family:'Bebas Neue',sans-serif;font-size:13px;color:rgba(255,215,0,.5);letter-spacing:1px;margin-bottom:10px}
+.rc h4{font-size:15px;font-weight:700;color:#eee;margin-bottom:8px;letter-spacing:.5px}
+.rc p{font-size:11.5px;color:rgba(255,255,255,.35);line-height:1.75}
+
+.move-list{margin-top:20px;width:100%;max-width:760px}
+.move{display:flex;align-items:baseline;gap:20px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.move .m-tag{font-family:'Bebas Neue',sans-serif;font-size:22px;font-weight:900;width:52px;flex-shrink:0}
+.move .m-body{flex:1}
+.move .m-name{font-size:14px;font-weight:700;color:#eee;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.move .m-name .m-en{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1.5px}
+.move .m-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6}
+
+.tl-track{display:flex;gap:1px;margin-top:28px;width:100%;max-width:900px}
+.tl-seg{flex:1;position:relative}
+.tl-seg .tl-fill{height:4px;background:rgba(255,255,255,.06)}
+.tl-seg.active .tl-fill{background:#FFD700}
+.tl-seg.future .tl-fill{background:rgba(255,136,68,.4)}
+.tl-seg .tl-info{margin-top:12px}
+.tl-seg .tl-date{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:.5px}
+.tl-seg .tl-name{font-size:13px;font-weight:700;color:rgba(255,255,255,.55);margin-top:2px}
+.tl-seg .tl-desc{font-size:9px;color:rgba(255,255,255,.2);margin-top:4px;line-height:1.5}
+
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-top:12px;width:100%;max-width:780px}
+.spec-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.spec-row .k{font-size:10.5px;color:rgba(255,255,255,.3);letter-spacing:.5px}
+.spec-row .v{font-size:11.5px;color:rgba(255,255,255,.6);font-weight:600;text-align:right}
+
+/* Card preview hover zoom (P4) */
+.card-preview-wrapper{position:relative;display:inline-block;overflow:visible}
+.card-preview-img{
+  cursor:pointer;display:block;
+  transition:transform .25s ease,box-shadow .25s ease;
+  position:relative;
+}
+.card-preview-img:hover{
+  transform:scale(2.5);
+  z-index:999;
+  box-shadow:0 16px 60px rgba(0,0,0,.85),0 0 50px rgba(255,215,0,.25);
+  border-radius:10px;
+}
+#s4.slide{overflow:visible}
+#s5.slide{overflow:visible}
+#s2.slide{overflow:visible}
+
+@media(max-width:900px){
+  .content,.content.wide{padding:0 30px;width:100%}
+  .panel-split,.panel-grid{display:none}
+  .row-cards{flex-direction:column;gap:16px}
+  .rc{border-right:none;padding:0}
+  .stat-row{flex-wrap:wrap}
+  .spec-grid{grid-template-columns:1fr}
+  .readout{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav"></nav>
+
+<!-- ════════════════════════════════════════════
+     01 — COVER
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s1">
+  <div class="strip"><span>ONE2LABS × CSL 5G × SAMSUNG S26 × ACGHK 2026 × CONTRACTOR CARD × ONE2LABS × CSL 5G × SAMSUNG S26 × ACGHK 2026 × CONTRACTOR CARD ×&nbsp;&nbsp;&nbsp;&nbsp;</span><span>ONE2LABS × CSL 5G × SAMSUNG S26 × ACGHK 2026 × CONTRACTOR CARD × ONE2LABS × CSL 5G × SAMSUNG S26 × ACGHK 2026 × CONTRACTOR CARD ×&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:640px;letter-spacing:-16px">5G</div>
+
+  <!-- device graphic -->
+  <div style="position:absolute;right:170px;top:52%;transform:translateY(-50%) rotate(-6deg);width:220px;height:460px;z-index:3">
+    <div style="position:absolute;inset:0;border:2.5px solid rgba(255,215,0,.9);border-radius:30px;background:linear-gradient(160deg,rgba(255,215,0,.1),rgba(0,229,255,.05) 60%,transparent);box-shadow:0 0 100px rgba(255,215,0,.2),0 0 200px rgba(0,229,255,.08),0 0 40px rgba(255,215,0,.15),inset 0 0 60px rgba(255,215,0,.06)">
+      <img src="p1_screen.png" style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;width:calc(100% - 40px);height:calc(100% - 40px);border-radius:16px;object-fit:cover">
+      <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;border-radius:16px;background:radial-gradient(circle at 25% 15%,rgba(0,229,255,.18),transparent 45%),radial-gradient(circle at 75% 85%,rgba(255,215,0,.12),transparent 45%),radial-gradient(circle at 50% 50%,rgba(179,136,255,.05),transparent 70%);pointer-events:none"></div>
+      <!-- glass glare — stronger diagonal reflection -->
+      <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;border-radius:16px;background:linear-gradient(140deg,rgba(255,255,255,.18) 0%,transparent 25%,transparent 55%,rgba(255,255,255,.06) 80%,rgba(255,255,255,.02) 100%);pointer-events:none"></div>
+      <!-- edge highlight — thicker glass bezel -->
+      <div style="position:absolute;top:20px;left:20px;right:20px;bottom:20px;border-radius:16px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12),inset 0 2px 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(0,0,0,.15);pointer-events:none"></div>
+      <div style="position:absolute;top:36px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:rgba(255,215,0,.6);box-shadow:0 0 10px rgba(255,215,0,.8)"></div>
+      <div style="position:absolute;bottom:48px;left:50%;transform:translateX(-50%);display:flex;align-items:flex-end;gap:4px">
+        <div style="width:6px;height:11px;background:#00E5FF;border-radius:2px;box-shadow:0 0 6px rgba(0,229,255,.6)"></div>
+        <div style="width:6px;height:17px;background:#00E5FF;border-radius:2px;box-shadow:0 0 6px rgba(0,229,255,.6)"></div>
+        <div style="width:6px;height:23px;background:#00E5FF;border-radius:2px;box-shadow:0 0 6px rgba(0,229,255,.6)"></div>
+        <div style="width:6px;height:29px;background:#00E5FF;border-radius:2px;box-shadow:0 0 6px rgba(0,229,255,.6)"></div>
+      </div>
+    </div>
+  </div>
+  <div class="spark" style="top:14%;right:26%;font-size:16px;animation:sparkle 3s ease-in-out infinite">✦</div>
+  <div class="spark" style="top:68%;right:32%;font-size:13px;animation:sparkle 2.4s ease-in-out infinite .5s">✦</div>
+  <div class="spark" style="top:38%;right:18%;font-size:9px;animation:sparkle 2s ease-in-out infinite 1s">✦</div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>ONE2LABS × CSL × SAMSUNG PROPOSAL</span></div>
+    <h1>
+      <span style="font-size:38px;display:block;color:rgba(255,255,255,.35);letter-spacing:5px;margin-bottom:6px">CONTRACTOR CARD</span>
+      <span style="font-size:112px;display:block">網速<span style="color:#FFD700">×</span>手機<span style="color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.9)">×AI</span></span>
+    </h1>
+    <div style="margin-top:22px;font-family:'Noto Sans TC',sans-serif;font-size:17px;font-weight:300;color:rgba(255,255,255,.5);letter-spacing:2px">
+      CSL × ACGHK 2026 互動攝影亭企劃 · <b style="color:#FFD700;font-weight:700">你的專屬契約者身份</b>
+    </div>
+    <div style="margin-top:18px;font-size:12px;color:rgba(255,255,255,.3);line-height:1.8;max-width:540px">
+      本專案為 csl. × ACGHK 2026（香港動漫電玩節）設計的 AI 互動攝影亭體驗。參加者透過觸控螢幕選擇屬性顏色與武器，拍攝個人肖像後由 AI 生成個人化動漫角色立繪，並製作成契約者閃卡，現場以 4R 相紙列印正背面，人手裁切後放入透明卡套交予使用者。<br><br>
+      <span style="color:rgba(255,215,0,.35)">概念定位：「csl. 5G 連繫你的另一個 ACG 身份」，每位參加者都是 CSL 宇宙中的「契約者」，透過 5G 網絡高速生成專屬閃卡。</span>
+    </div>
+    <div style="margin-top:26px;display:flex;align-items:center;gap:14px">
+      <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.5px;color:#000;background:#FFD700;padding:5px 14px;border-radius:2px">2026.07.24 — 07.28</span>
+      <span style="font-size:12px;color:rgba(255,255,255,.28);letter-spacing:.5px">香港會議展覽中心 · 香港動漫電玩節</span>
+    </div>
+    <div class="stat-row" style="max-width:560px">
+      <div class="stat"><div class="num">1000<span class="u">+</span></div><div class="lbl">預計參與人次</div></div>
+      <div class="stat"><div class="num">90<span class="u">-120s</span></div><div class="lbl">單次體驗時長</div></div>
+      <div class="stat"><div class="num">5<span class="u">屬性</span></div><div class="lbl">契約角色招式</div></div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">SYS.CONTRACTOR</span> // ID:ACGHK2026<br>STATUS: <span class="hl">PROPOSAL_ACTIVE</span> // v5.0</div>
+  <div class="pageno">01 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     02 — ONE2LABS
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:480px">O1</div>
+  <div class="spark" style="top:20%;right:20%;font-size:14px;animation:sparkle 2.6s ease-in-out infinite">✦</div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>ABOUT US</span></div>
+    <img src="all_logo.png" style="width:180px;height:auto;margin-bottom:8px">
+    <div class="tiny-label" style="margin-top:8px">HONG KONG AI STARTUP</div>
+
+    <p style="margin-top:26px;font-size:16px;color:rgba(255,255,255,.5);line-height:2;max-width:520px">
+      我們是一間立足於香港的本地 AI 初創公司，致力於將先進的人工智能技術與多媒體互動、藝術創作深度融合。
+    </p>
+    <p style="margin-top:14px;font-size:13px;color:rgba(255,255,255,.32);line-height:1.9;max-width:520px">
+      我們打破傳統媒介的界限，透過獨特的藝術視角與創新的互動科技，為使用者打造前所未有、好玩且具啟發性的嶄新互動體驗。不論是沉浸式藝術展覽、數位跨界合作，還是客製化的互動方案，我們都用 AI 賦予創意無限可能。
+    </p>
+
+    <div class="row-cards" style="max-width:520px">
+      <div class="rc"><div class="rc-num">01</div><h4>沉浸式藝術展覽</h4><p>結合空間設計與互動科技</p></div>
+      <div class="rc"><div class="rc-num">02</div><h4>數位跨界合作</h4><p>連接品牌與新世代體驗</p></div>
+      <div class="rc"><div class="rc-num">03</div><h4>客製化互動方案</h4><p>AI 驅動的個人化生成</p></div>
+    </div>
+  </div>
+
+  <!-- Past Products — left of watermark -->
+  <div style="position:absolute;left:62%;top:50%;transform:translate(-50%,-50%);z-index:7">
+    <div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,215,0,.4);letter-spacing:1.5px">✦ 過往品牌產品</div>
+      </div>
+      <!-- Partner Logos -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.15);letter-spacing:1px">合作夥伴</div>
+        <img src="partner_logo_1.webp" style="height:27px;width:auto;opacity:.9">
+        <img src="partner_logo_2.png" style="height:33px;width:auto;opacity:.9">
+        <img src="partner_logo_3.png" style="height:30px;width:auto;opacity:.9">
+      </div>
+      <div style="display:flex;gap:8px">
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="past_work_1.jpg" style="width:258px;height:173px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="past_work_2.jpg" style="width:258px;height:173px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:7px">
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="past_work_3.jpg" style="width:173px;height:173px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="past_work_4.jpg" style="width:173px;height:173px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="past_work_5.jpg" style="width:173px;height:173px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="p2_extra_1.png" style="width:172px;height:115px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="p2_extra_2.png" style="width:172px;height:115px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+        <span class="card-preview-wrapper"><img class="card-preview-img" src="p2_extra_3.png" style="width:172px;height:115px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video — centered vertically -->
+  <div style="position:absolute;right:60px;top:50%;transform:translateY(-50%);z-index:5">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,229,255,.4);letter-spacing:1.5px;margin-bottom:8px">▶ 產品影片</div>
+    <video src="past_work_video.mov" controls style="width:234px;height:416px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:#000"></video>
+  </div>
+  <div class="readout"><span class="hl">SYS.COMPANY</span>: ONE2LABS<br>FOCUS: AI × MULTIMEDIA × INTERACTIVE // HK</div>
+  <div class="pageno">02 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     03 — BOOTH DESIGN
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s3">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:380px">BOOTH</div>
+
+  <div class="content wide" style="justify-content:center;padding:40px 60px">
+    <div class="eyebrow"><span class="dot"></span><span>BOOTH DESIGN</span></div>
+    <h2>Photo Booth <span class="accent">·</span> 外觀設計</h2>
+    <div class="tiny-label" style="margin-top:10px">800×600×1800mm · 鐵藝造型噴漆 · 萬向輪帶剎車</div>
+
+    <div style="display:flex;justify-content:center;margin-top:24px">
+      <img src="booth_3view.png" style="width:72%;height:auto;border-radius:16px;border:2px solid rgba(255,215,0,.1);box-shadow:0 0 60px rgba(255,215,0,.06)">
+    </div>
+  </div>
+  <div class="readout"><span class="hl">BOOTH</span>: 800×600×1800mm // IRON + WHEELS</div>
+  <div class="pageno">03 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     04 — JOURNEY
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s4">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+
+  <div class="content wide" style="justify-content:center;padding-top:60px;padding-bottom:60px">
+    <div class="eyebrow"><span class="dot"></span><span>USER JOURNEY</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center">
+      <div>
+        <h2>體驗旅程 <span class="accent">·</span> 90-120 秒</h2>
+        <div class="tiny-label" style="margin-top:10px">每位契約者由 START 到拎卡只需 90-120 秒</div>
+
+        <div class="tl-track">
+          <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">P1 · 3-5s</div><div class="tl-name">START</div><div class="tl-desc">海報式歡迎頁</div></div></div>
+          <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">P2 · 5-8s</div><div class="tl-name">契約者資料</div><div class="tl-desc">性別 + 英文名</div></div></div>
+          <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">P3 · 3-5s</div><div class="tl-name">揀屬性</div><div class="tl-desc">火水雷風光</div></div></div>
+          <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">P4 · 3-5s</div><div class="tl-name">揀武器</div><div class="tl-desc">5 款武器轉輪</div></div></div>
+          <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">P5 · 5-8s</div><div class="tl-name">影相</div><div class="tl-desc">Samsung S26 CAM</div></div></div>
+                    <div class="tl-seg" style="flex:1.4"><div class="tl-fill" style="background:#B388FF"></div><div class="tl-info"><div class="tl-date" style="color:rgba(179,136,255,.6)">P6 · 45-60s</div><div class="tl-name" style="color:rgba(179,136,255,.85)">AI 生成</div><div class="tl-desc">5G傳輸→AI→完成</div></div></div>
+          <div class="tl-seg" style="flex:1.6"><div class="tl-fill" style="background:#00E5FF"></div><div class="tl-info"><div class="tl-date" style="color:rgba(0,229,255,.6)">🖨️ · 15-30s</div><div class="tl-name" style="color:rgba(0,229,255,.85)">列印輸出</div><div class="tl-desc">4R 熱昇華打印</div></div></div>
+        </div>
+
+        <div class="row-cards" style="max-width:600px;margin-top:28px">
+          <div class="rc"><div class="rc-num">🎴</div><h4>P1 · WELCOME</h4><p>海報風歡迎頁 · 主題：網速×手機×AI</p></div>
+          <div class="rc"><div class="rc-num">👤</div><h4>P2 · PROFILE</h4><p>揀性別 ♀♂ · Touch Keyboard 輸入名</p></div>
+          <div class="rc"><div class="rc-num">✨</div><h4>P3 · ATTRIBUTE</h4><p>🔥💧⚡🌪️✨ 轉輪式選擇</p></div>
+        </div>
+      </div>
+      <!-- Interactive Demo Preview -->
+      <div style="border:2px solid rgba(255,215,0,.15);border-radius:16px;overflow:hidden;box-shadow:0 0 40px rgba(255,215,0,.08);background:#050506">
+        <div style="background:rgba(255,215,0,.06);padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:9px;color:rgba(255,215,0,.4);font-family:'Space Mono',monospace;letter-spacing:1px">
+          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700"></span> LIVE DEMO — 可直接操作（← → 切換頁面）
+        </div>
+        <iframe src="demo.html" style="width:100%;height:760px;border:none;border-radius:0 0 14px 14px;display:block"></iframe>
+      </div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">JOURNEY</span>: 6 STEPS // TOTAL ~90-120s</div>
+  <div class="pageno">04 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     05 — AI WORKFLOW
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s5">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:360px">WORKFLOW</div>
+
+  <div class="content wide" style="justify-content:center;padding:50px 80px">
+    <div class="eyebrow"><span class="dot"></span><span>TECHNOLOGY</span></div>
+    <h2>AI 生成 Workflow <span class="accent">·</span> 從參考到成品</h2>
+    <div class="tiny-label" style="margin-top:10px">SDXL + IP-Adapter FaceID + Style Reference → 個人化動漫角色閃卡</div>
+
+    <!-- 4-column pipeline: FaceID | Style(大) | Process | Output -->
+    <div style="display:grid;grid-template-columns:110px auto 1.4fr auto 1fr;gap:16px;align-items:center;margin-top:28px">
+      
+      <!-- FaceID Reference (compact) -->
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;color:rgba(0,229,255,.5);margin-bottom:8px;letter-spacing:1px">FaceID</div>
+        <div style="width:80px;height:110px;margin:0 auto;background:rgba(0,229,255,.03);border:1.5px solid rgba(0,229,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+          <img src="s26_phone.png" style="width:70px;height:auto;border-radius:4px">
+        </div>
+        <div style="margin-top:6px;font-size:10px;color:rgba(255,255,255,.2);line-height:1.4">用戶肖像<br>S26 拍攝</div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="text-align:center;font-size:20px;color:rgba(255,215,0,.2);padding:0">→</div>
+
+      <!-- Style Reference (LARGEST - multiple images) -->
+      <div style="text-align:center">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:#FFD700;margin-bottom:8px;letter-spacing:2px">STYLE REFERENCE · 風格參考</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+          <img src="real_photo_new.png" style="width:100%;aspect-ratio:2/3;object-fit:contain;border-radius:6px;border:1px solid rgba(255,215,0,.08)">
+          <img src="char_female.png" style="width:100%;aspect-ratio:2/3;object-fit:contain;border-radius:6px;border:1.5px solid rgba(255,215,0,.12)">
+          <img src="style_ref_extra.png" style="width:100%;aspect-ratio:2/3;object-fit:contain;border-radius:6px;border:1px solid rgba(255,215,0,.08)">
+          <img src="card_frame_ref.png" style="width:100%;aspect-ratio:2/3;object-fit:contain;border-radius:6px;border:1px solid rgba(255,215,0,.08)">
+        </div>
+        <div style="margin-top:8px;font-size:9px;color:rgba(255,255,255,.25);line-height:1.5">
+          角色設計多視圖 · 風格海報 Reference · 服裝顏色設定
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="text-align:center;font-size:20px;color:rgba(255,215,0,.2);padding:0">→</div>
+
+      <!-- Process + Output stacked (compact) -->
+      <div style="text-align:center;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:#B388FF;margin-bottom:6px;letter-spacing:1px">AI 生成</div>
+          <div style="padding:12px;background:rgba(179,136,255,.04);border:1px solid rgba(179,136,255,.1);border-radius:8px">
+            <div style="font-size:10px;font-weight:700;color:#eee;margin-bottom:3px">SDXL</div>
+            <div style="font-size:7px;color:rgba(255,255,255,.25);line-height:1.5">IP-Adapter<br>FaceID + Style<br>~45-60s</div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;color:#00ff88;margin-bottom:6px;letter-spacing:1px">輸出</div>
+          <div style="padding:10px;background:rgba(0,255,136,.03);border:1.5px solid rgba(0,255,136,.15);border-radius:8px">
+            <div style="font-size:28px">🎴</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px">63×88mm 閃卡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom process details -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-top:36px;max-width:1000px">
+      <div style="padding:14px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.04);border-radius:8px">
+        <div style="font-size:13px;font-weight:700;color:#FFD700;margin-bottom:4px">① Face Detection</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1.5">手機拍攝用戶肖像<br>face-api.js 偵測人臉<br>自動裁切+去背</div>
+      </div>
+      <div style="padding:14px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.04);border-radius:8px">
+        <div style="font-size:13px;font-weight:700;color:#FFD700;margin-bottom:4px">② IP-Adapter FaceID</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1.5">保持用戶面部特徵<br>確保角色「似本人」<br>SDXL 人臉一致性</div>
+      </div>
+      <div style="padding:14px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.04);border-radius:8px">
+        <div style="font-size:13px;font-weight:700;color:#FFD700;margin-bottom:4px">③ Style Reference</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1.5">屬性+武器 Prompt<br>動漫風格立繪<br>CSL 黑金配色輸出</div>
+      </div>
+      <div style="padding:14px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.04);border-radius:8px">
+        <div style="font-size:13px;font-weight:700;color:#FFD700;margin-bottom:4px">④ Card Compose</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.3);line-height:1.5">合成閃卡正背面<br>加入招式描述+數值<br>自動排版 → 列印</div>
+      </div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">AI</span>: SDXL + IP-ADAPTER FACEID + STYLE // RTX 5070 · ~45-60s</div>
+  <div class="pageno">05 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     06 — CHARACTER DESIGN
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s6">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+
+  <div class="content wide" style="justify-content:center;padding:40px 60px">
+    <div class="eyebrow"><span class="dot"></span><span>CHARACTER DESIGN</span></div>
+    <h2>角色設計 <span class="accent">·</span> 5 男 5 女</h2>
+    <div class="tiny-label" style="margin-top:10px">基於同一人物設計+真人特徵 · 10 款契約者角色參考圖</div>
+
+    <!-- Top row: 5 males -->
+        <div style="margin-top:12px">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,229,255,.35);letter-spacing:1.5px;margin-bottom:8px">♂ MALE · 男性角色</div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <span class="card-preview-wrapper"><img src="char_m_fire.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,71,87,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_m_water.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(30,144,255,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_m_thunder.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,215,0,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_m_wind.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(0,255,136,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_m_light.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(168,85,247,.15)"></span>
+          </div>
+        </div>
+
+        <!-- Bottom row: 5 females -->
+        <div style="margin-top:8px">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,105,180,.35);letter-spacing:1.5px;margin-bottom:8px">♀ FEMALE · 女性角色</div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <span class="card-preview-wrapper"><img src="char_f_fire.png" class="card-preview-img" style="width:186px;height:248px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,71,87,.15);transform-origin:bottom center"></span>
+            <span class="card-preview-wrapper"><img src="char_f_water.png" class="card-preview-img" style="width:186px;height:248px;transform-origin:bottom center;object-fit:cover;border-radius:8px;border:1px solid rgba(30,144,255,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_f_thunder.png" class="card-preview-img" style="width:186px;height:248px;transform-origin:bottom center;object-fit:cover;border-radius:8px;border:1px solid rgba(255,215,0,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_f_wind.png" class="card-preview-img" style="width:186px;height:248px;transform-origin:bottom center;object-fit:cover;border-radius:8px;border:1px solid rgba(0,255,136,.15)"></span>
+            <span class="card-preview-wrapper"><img src="char_f_light.png" class="card-preview-img" style="width:186px;height:248px;transform-origin:bottom center;object-fit:cover;border-radius:8px;border:1px solid rgba(168,85,247,.15)"></span>
+          </div>
+        </div>
+  </div>
+  <div class="readout"><span class="hl">CHARACTERS</span>: 5 MALE + 5 FEMALE // 10 DESIGNS</div>
+  <div class="pageno">06 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     07 — CARD DESIGN
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s7">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:360px">63×88</div>
+
+  <!-- Video showcase -->
+  <div style="position:absolute;right:60px;top:50%;transform:translateY(-50%);z-index:5">
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,229,255,.4);letter-spacing:1.5px;margin-bottom:8px">▶ 閃卡展示影片</div>
+    <video src="p7_video.mp4" controls autoplay loop muted style="width:320px;height:auto;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:#000"></video>
+  </div>
+
+  <!-- card images: 3 top + 3 bottom grid -->
+  <div style="position:absolute;left:56%;top:50%;transform:translate(-50%,-50%);z-index:12;display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div style="display:flex;gap:18px">
+      <span class="card-preview-wrapper"><img src="card_1_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+      <span class="card-preview-wrapper"><img src="card_2_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+      <span class="card-preview-wrapper"><img src="card_3_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+    </div>
+    <div style="display:flex;gap:18px">
+      <span class="card-preview-wrapper"><img src="card_4_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+      <span class="card-preview-wrapper"><img src="card_5_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+      <span class="card-preview-wrapper"><img src="card_back_v2.png" class="card-preview-img" style="width:140px;height:196px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5);object-fit:cover"></span></span>
+    </div>
+  </div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>CARD DESIGN</span></div>
+    <h2>契約者閃卡</h2>
+    <div class="tiny-label" style="margin-top:10px">每位契約者的身份象徵 · 63×88mm 標準 TCG 卡 · 4R 相紙打印</div>
+
+    <div class="row-cards" style="max-width:600px">
+      <div class="rc" style="border-right-color:rgba(255,215,0,.15)">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:#FFD700;letter-spacing:2px;margin-bottom:12px">🎴 正面 FRONT</div>
+        <p style="line-height:2.1">4 邊 CSL 金色邊框<br>暗色背景 + 屬性色光暈<br>角色立繪（AI 生成）<br>專屬招式描述（取代數值）<br>契約者名稱 + 英文名<br>csl. 5G + Samsung ACG</p>
+      </div>
+      <div class="rc">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:rgba(255,255,255,.3);letter-spacing:2px;margin-bottom:12px">🔙 背面 BACK</div>
+        <p style="line-height:2.1;color:rgba(255,255,255,.28)">CSL + Samsung 斜行暗花<br>csl. logo + Samsung ACG<br>QR Code 下載 Loop Video<br>獨立 serial number<br>csl. × ACGHK 2026 branding</p>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px">
+      4R 102×152mm · 人手裁切 + 透明卡套 · 正背面同印一張相紙
+    </div>
+    <div style="margin-top:16px;padding:12px 16px;border-left:2px solid #00E5FF;background:rgba(0,229,255,.03);max-width:520px">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:rgba(0,229,255,.5);letter-spacing:1.5px;margin-bottom:6px">📱 數碼版 · 動態閃卡</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.7">實體閃卡印有 <span style="color:rgba(0,229,255,.6)">QR Code</span>，掃描後可下載數碼版閃卡至手機。數碼版保留角色立繪與招式資訊，並加入 <span style="color:rgba(255,215,0,.5)">屬性元素動畫</span>（火焰、水流、雷電、風刃、光束），成為可收藏的動態契約者身份證明。</div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">CARD</span>: 63×88mm TCG STANDARD<br><span class="hl">4R PRINT</span>: 102×152mm</div>
+  <div class="pageno">07 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     07 — 5 MOVES
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s8">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:420px">×5</div>
+
+  <!-- attribute character showcase — tight 2+3 grid -->
+  <div style="position:absolute;right:120px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:0">
+    <div style="display:flex;gap:2px">
+      <img src="attr_fire_v2.png" style="width:195px;height:273px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))">
+      <img src="attr_water.png" style="width:195px;height:273px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))">
+    </div>
+    <div style="display:flex;gap:2px;margin-top:-60px">
+      <img src="attr_thunder_v3.png" style="width:195px;height:273px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))">
+      <img src="attr_wind.png" style="width:195px;height:273px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))">
+      <img src="attr_light.png" style="width:195px;height:273px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))">
+    </div>
+  </div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>SPECIAL MOVES</span></div>
+    <h2>5 屬性 <span class="accent">·</span> 5 專屬招式</h2>
+    <div class="tiny-label" style="margin-top:10px">融入 Samsung · CSL 5G · Galaxy AI 技術，成為閃卡上的獨特技能</div>
+
+    <div class="move-list">
+      <div class="move">
+        <div class="m-tag" style="color:#ff4757">火</div>
+        <div class="m-body"><div class="m-name">烈焰極速爆發<span class="m-en">FIRE</span></div><div class="m-desc">憑藉 Samsung 旗艦晶片與 csl. 5G 萬兆頻寬，瞬間將網速與體能推向極致，本回合全隊行動力與傷害加倍。</div></div>
+      </div>
+      <div class="move">
+        <div class="m-tag" style="color:#1e90ff">水</div>
+        <div class="m-body"><div class="m-name">智析水流分身<span class="m-en">WATER</span></div><div class="m-desc">利用 Galaxy AI 智慧搜查與 5G 多線程傳輸，瞬間分裂出無數水流分身，完美閃避攻擊並秒速看穿敵方手牌。</div></div>
+      </div>
+      <div class="move">
+        <div class="m-tag" style="color:#ffd700">雷</div>
+        <div class="m-body"><div class="m-name">雷霆 AI 瞬連閃<span class="m-en">THUNDER</span></div><div class="m-desc">在 Samsung 螢幕極致流暢下，化身藍紫雷電，配合 5G 無縫連接與 AI 自動導航，完成零延遲的無限全體連擊。</div></div>
+      </div>
+      <div class="move">
+        <div class="m-tag" style="color:#00ff88">風</div>
+        <div class="m-body"><div class="m-name">即時風域翻譯<span class="m-en">WIND</span></div><div class="m-desc">微風結合 Galaxy AI 即時翻譯與 5G 雲端運算，秒速解碼戰場風音，讓敵方下輪卡牌戰術在風中無所遁形。</div></div>
+      </div>
+      <div class="move">
+        <div class="m-tag" style="color:#FFFFFF">光</div>
+        <div class="m-body"><div class="m-name">智慧光速夜眸<span class="m-en">LIGHT</span></div><div class="m-desc">Samsung 超視覺夜拍融合 5G 大頻寬，透過 AI 雲端影像渲染穿透黑暗，秒速驅散負面狀態並鎖定敵方弱點暴擊。</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">MOVES</span>: 5 ATTRIBUTES × SPECIAL SKILLS</div>
+  <div class="pageno">08 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     07 — OUTPUT + BOOTH
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s8">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:400px">1K</div>
+
+  <!-- product sheet with phone-style frame -->
+  <div style="position:absolute;right:40px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:24px">
+    <div style="position:relative;border:2.5px solid rgba(255,215,0,.9);border-radius:26px;background:linear-gradient(160deg,rgba(255,215,0,.1),rgba(0,229,255,.05) 60%,transparent);box-shadow:0 0 100px rgba(255,215,0,.2),0 0 200px rgba(0,229,255,.08),0 0 40px rgba(255,215,0,.15),inset 0 0 60px rgba(255,215,0,.06);padding:14px">
+      <img src="booth_product_sheet.png" style="display:block;width:456px;height:auto;border-radius:14px">
+      <div style="position:absolute;top:14px;left:14px;right:14px;bottom:14px;border-radius:14px;background:radial-gradient(circle at 25% 15%,rgba(0,229,255,.15),transparent 45%),radial-gradient(circle at 75% 85%,rgba(255,215,0,.1),transparent 45%);pointer-events:none"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;bottom:14px;border-radius:14px;background:linear-gradient(140deg,rgba(255,255,255,.12) 0%,transparent 25%,transparent 55%,rgba(255,255,255,.04) 80%,rgba(255,255,255,.02) 100%);pointer-events:none"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;bottom:14px;border-radius:14px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1),inset 0 2px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.12);pointer-events:none"></div>
+    </div>
+    <div style="position:relative;border:2.5px solid rgba(255,215,0,.9);border-radius:26px;background:linear-gradient(160deg,rgba(255,215,0,.1),rgba(0,229,255,.05) 60%,transparent);box-shadow:0 0 100px rgba(255,215,0,.2),0 0 200px rgba(0,229,255,.08),0 0 40px rgba(255,215,0,.15),inset 0 0 60px rgba(255,215,0,.06);padding:14px">
+      <img src="booth_scene.png" style="display:block;width:456px;height:auto;border-radius:14px">
+      <div style="position:absolute;top:14px;left:14px;right:14px;bottom:14px;border-radius:14px;background:radial-gradient(circle at 25% 15%,rgba(0,229,255,.15),transparent 45%),radial-gradient(circle at 75% 85%,rgba(255,215,0,.1),transparent 45%);pointer-events:none"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;bottom:14px;border-radius:14px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.1),inset 0 2px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.12);pointer-events:none"></div>
+      <div style="position:absolute;bottom:22px;right:24px;font-family:'Space Mono',monospace;font-size:7px;color:rgba(255,255,255,.25);letter-spacing:.5px;background:rgba(0,0,0,.6);padding:3px 8px;border-radius:4px">※ 此圖片只供參考</div>
+    </div>
+  </div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>OUTPUT & BOOTH SPEC</span></div>
+    <h2>成品規格 <span class="accent">·</span> 空間規劃</h2>
+    <div class="tiny-label" style="margin-top:10px">預計 5 日 1000 人參與 · 每小時 ~30-40 人次</div>
+
+    <div class="row-cards" style="max-width:760px">
+      <div class="rc"><div class="rc-num">🖼️</div><h4>實體 4R 閃卡</h4><p>63×88mm 正面+背面<br>人手裁切 + 透明卡套</p></div>
+      <div class="rc"><div class="rc-num">🎬</div><h4>5-10s Loop Video</h4><p>角色+招式展示動畫<br>QR Code 印在卡背</p></div>
+      <div class="rc"><div class="rc-num">📱</div><h4>Samsung S26 ×2-3</h4><p>內置鏡頭 · 每 30 分鐘輪換<br>USB/HDMI 連接 Booth</p></div>
+    </div>
+
+    <div class="spec-grid">
+      <div>
+        <div class="tiny-label" style="color:rgba(255,215,0,.4)">📐 BOOTH 尺寸</div>
+        <div class="spec-row"><span class="k">整體尺寸</span><span class="v">800×600×1800mm</span></div>
+        <div class="spec-row"><span class="k">螢幕區域</span><span class="v">679×1208mm</span></div>
+        <div class="spec-row"><span class="k">材質</span><span class="v">鐵藝造型噴漆</span></div>
+        <div class="spec-row"><span class="k">場地需求</span><span class="v">~200×200cm</span></div>
+        <div class="spec-row"><span class="k">額外配置</span><span class="v">工作枱 + 座椅</span></div>
+      </div>
+      <div>
+        <div class="tiny-label" style="color:rgba(255,215,0,.4)">⏱️ 等候時間</div>
+        <div class="spec-row"><span class="k">用戶操作</span><span class="v">~25-35s</span></div>
+        <div class="spec-row"><span class="k">AI 生成</span><span class="v">~45-60s</span></div>
+        <div class="spec-row"><span class="k">列印輸出</span><span class="v">~15-30s</span></div>
+        <div class="spec-row"><span class="k">合計 / 人</span><span class="v" style="color:#FFD700">~90-120 秒</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="readout"><span class="hl">CAPACITY</span>: ~30-40/HR × 8HR × 5D ≈ 1000</div>
+  <div class="pageno">09 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     08 — BRAND VALUE
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s9">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div class="panel-split"></div>
+  <div class="panel-grid"></div>
+  <div class="hero-mark" style="font-size:340px">BR</div>
+
+  <div class="content" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>BRAND VALUE</span></div>
+    <h2>品牌結合點</h2>
+    <div class="tiny-label" style="margin-top:10px">csl. 5G + Samsung — 自然融入每個互動環節</div>
+
+    <div class="move-list" style="max-width:700px">
+      <div class="move"><div class="m-tag" style="font-size:20px;color:#FFD700">📱</div><div class="m-body"><div class="m-name">Samsung S26 合作<span class="m-en">DEVICE</span></div><div class="m-desc">旗艦手機作拍攝裝置融入攤位，用戶親身體驗 S26 鏡頭實力，強化品牌觸感與科技感。</div></div></div>
+      <div class="move"><div class="m-tag" style="font-size:20px;color:#00E5FF">📶</div><div class="m-body"><div class="m-name">csl. 5G 速度展示<span class="m-en">NETWORK</span></div><div class="m-desc">拍攝到 AI 生成到打印，全程展示 5G 極速。UI 加入傳輸視覺化 + 三階段 loading 動畫。</div></div></div>
+      <div class="move"><div class="m-tag" style="font-size:20px;color:#B388FF">🎴</div><div class="m-body"><div class="m-name">閃卡品牌載體<span class="m-en">MERCHANDISE</span></div><div class="m-desc">每張閃卡有 csl. + Samsung branding，背面 QR Code 引導活動專頁，延續品牌接觸。</div></div></div>
+      <div class="move"><div class="m-tag" style="font-size:20px;color:#ff4757">🎪</div><div class="m-body"><div class="m-name">ACGHK 年輕族群<span class="m-en">AUDIENCE</span></div><div class="m-desc">動漫節主流 15-30 歲，精準 targeting，互動體驗帶動社交分享二次曝光。</div></div></div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">TARGET</span>: 15-30YO // ACGHK AUDIENCE</div>
+  <div class="pageno">10 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     09 — TIMELINE
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s10">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+
+  <div class="content wide" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>TIMELINE</span></div>
+    <h2>推行時間表 <span class="accent">·</span> 倒推至 7.24</h2>
+    <div class="tiny-label" style="margin-top:10px">2026.07.24（五）至 07.28（二）· 所有項目需於 7.24 前完成</div>
+
+    <div style="transform:scale(1.5);transform-origin:top left;width:66.6%">
+      <div class="tl-track">
+      <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">07.07 — 07.14</div><div class="tl-name">UI/UX 設計</div><div class="tl-desc">P1-P6 視覺<br>閃卡 layout<br>Design Lock</div></div></div>
+      <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">07.14 — 07.18</div><div class="tl-name">開發整合</div><div class="tl-desc">6 頁 SPA<br>ComfyUI<br>Video Workflow</div></div></div>
+      <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">07.18 — 07.22</div><div class="tl-name">測試調校</div><div class="tl-desc">AI 品質 QA<br>速度優化<br>現場演練</div></div></div>
+      <div class="tl-seg active"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date">07.22 — 07.23</div><div class="tl-name">場地 Setup</div><div class="tl-desc">Booth 搭建<br>硬件安裝<br>人員培訓</div></div></div>
+      <div class="tl-seg future" style="flex:1.3"><div class="tl-fill"></div><div class="tl-info"><div class="tl-date" style="color:rgba(255,136,68,.7)">07.24 — 07.28</div><div class="tl-name" style="color:rgba(255,136,68,.9)">🎪 動漫節</div><div class="tl-desc">5 日 Operation<br>現場支援<br>數據收集</div></div></div>
+    </div>
+    </div>
+
+    <div style="margin-top:80px;padding:16px 20px;border-left:2px solid #FFD700;background:rgba(255,215,0,.02);max-width:800px">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:#FFD700;letter-spacing:1.5px;margin-bottom:6px">📌 KEY MILESTONES</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.35);line-height:1.9">
+        07.14：UI/UX Design Lock（客戶最後確認）　·　07.18：開發 + AI workflow 完成　·　07.22：全部測試通過，可投入運作
+      </div>
+    </div>
+  </div>
+  <div class="readout"><span class="hl">DEADLINE</span>: 2026.07.24 — ACGHK OPEN</div>
+  <div class="pageno">11 / 12</div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     10 — CLOSE
+     ════════════════════════════════════════════ -->
+<section class="slide" id="s11">
+  <div class="noise"></div>
+  <div class="side-bar"></div>
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:900px;background:radial-gradient(circle,rgba(255,215,0,.035) 0%,transparent 60%);pointer-events:none;z-index:1"></div>
+  <div class="hero-mark" style="top:50%;left:50%;right:auto;transform:translate(-50%,-50%);font-size:130px;color:rgba(255,215,0,.02)">CONTRACTOR</div>
+
+  <div class="content centered" style="justify-content:center">
+    <div class="eyebrow"><span class="dot"></span><span>ONE2LABS</span></div>
+    <div style="font-size:clamp(22px,2.5vw,38px);font-weight:200;color:rgba(255,255,255,.45);font-style:italic;margin-top:10px;line-height:1.5">
+      「每位參加者，都是<br><span style="color:#FFD700;font-weight:700;font-style:normal">csl. 宇宙</span> 的契約者。」
+    </div>
+    <div style="margin-top:30px;font-size:15px;color:rgba(255,255,255,.18);letter-spacing:4px;font-weight:300">
+      CSL × ACGHK 2026 · CONTRACTOR CARD
+    </div>
+    <div style="margin-top:20px;display:flex;gap:8px;justify-content:center">
+      <span style="font-size:10px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid rgba(0,229,255,.15);color:rgba(0,229,255,.5);letter-spacing:1px">📶 網速</span>
+      <span style="font-size:10px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid rgba(255,215,0,.15);color:rgba(255,215,0,.5);letter-spacing:1px">📱 手機</span>
+      <span style="font-size:10px;font-weight:600;padding:5px 14px;border-radius:20px;border:1px solid rgba(179,136,255,.15);color:rgba(179,136,255,.5);letter-spacing:1px">🤖 AI</span>
+    </div>
+  </div>
+
+  <div class="strip" style="position:absolute;bottom:0;top:auto"><span>THANK YOU · ONE2LABS × CSL × SAMSUNG · ACGHK 2026 · 網速 × 手機 × AI ·&nbsp;&nbsp;&nbsp;&nbsp;</span><span>THANK YOU · ONE2LABS × CSL × SAMSUNG · ACGHK 2026 · 網速 × 手機 × AI ·&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+  <div class="readout" style="bottom:44px"><span class="hl">THANK YOU</span><br>CONTACT: proposal@one2labs.com</div>
+  <div class="pageno" style="bottom:44px">12 / 12</div>
+</section>
+
+<script>
+let cur = 0;
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+
+// Build nav dots
+slides.forEach((s, i) => {
+  const d = document.createElement('button');
+  d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => go(i);
+  nav.appendChild(d);
+});
+
+// Show first slide
+slides[0].classList.add('active');
+
+function go(i) {
+  if (i < 0 || i >= slides.length) return;
+  slides[cur].classList.remove('active');
+  cur = i;
+  slides[cur].classList.add('active');
+  document.querySelectorAll('.nav-dot').forEach((d, j) => d.classList.toggle('active', j === cur));
+}
+
+// Keyboard controls
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    go(cur + 1);
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    go(cur - 1);
+  }
+  if (e.key === 'Home') { e.preventDefault(); go(0); }
+  if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  // F = toggle fullscreen (hides browser chrome)
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+});
+
+// Click left/right half to navigate (if not clicking a button)
+document.addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') return;
+  if (e.clientX < window.innerWidth / 3) go(cur - 1);
+  if (e.clientX > window.innerWidth * 2 / 3) go(cur + 1);
+});
+
+// Touch swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 60) go(cur + (diff > 0 ? 1 : -1));
+});
+</script>
+</body>
+</html>

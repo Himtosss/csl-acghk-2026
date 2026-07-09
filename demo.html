@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CSL × ACGHK 2026 — 6-Page Demo v3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;700;900&family=Bebas+Neue&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    padding: 20px 10px;
+    overflow-x: hidden;
+  }
+
+  /* ===== COMBINED DEMO WRAPPER ===== */
+  .demo-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  /* ===== PAGE SYSTEM ===== */
+  .page {
+    display: none;
+    width: 100%;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .page.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* ===== CSL TOP BAR → FOUR-SIDED BORDER ===== */
+  .screen {
+    width: 400px;
+    height: 580px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 100px rgba(0,0,0,0.7);
+    background: #0d0d14;
+    border: 2px solid #FFD700;
+    flex-shrink: 0;
+  }
+  .csl-top {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px; z-index: 10;
+  }
+  .csl-top .logo { font-weight: 900; font-size: 13px; color: #FFD700; letter-spacing: -0.3px; }
+  .csl-top .step { font-size: 7px; font-weight: 700; color: rgba(255,215,0,0.4); letter-spacing: 1.5px; }
+  .csl-top .step em { color: #FFD700; font-style: normal; }
+  .csl-top .status { font-size: 7px; font-weight: 700; color: rgba(255,215,0,0.4); letter-spacing: 1.5px; }
+  .csl-top .status em { color: #FFD700; font-style: normal; }
+
+  /* ===== SHARED BACKGROUND ELEMENTS ===== */
+  .noise {
+    position: absolute; inset: 0; opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 256px 256px;
+    pointer-events: none; z-index: 0;
+  }
+  .strips {
+    position: absolute; inset: 0; display: flex; z-index: 0; pointer-events: none;
+  }
+  .strips .strip { flex: 1; border-right: 1px solid rgba(255,255,255,0.015); }
+  .strips .strip:last-child { border-right: none; }
+
+  /* ===== CSL WATERMARK (diagonal text, P2-P6 only) ===== */
+  .page:not(#page1) .screen::before {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cdefs%3E%3Cpattern id='csl' x='0' y='0' width='80' height='80' patternUnits='userSpaceOnUse'%3E%3Ctext x='8' y='26' transform='rotate(-45,8,26)' font-family='Inter,sans-serif' font-weight='900' font-size='16' fill='rgba(255,215,0,0.04)'%3ECSL%3C/text%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23csl)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 80px 80px;
+  }
+
+  /* Hide strips on P2-P6 */
+  .page:not(#page1) .strips { display: none; }
+
+  /* Signal bars pulse animation (used in P1 right-brand) */
+  @keyframes signalPulse { 0%,100% { opacity: 0.15; } 50% { opacity: 0.4; } }
+  .headline {
+    position: absolute;
+    top: 44px; left: 0; right: 0;
+    text-align: center; z-index: 5; pointer-events: none;
+  }
+  .headline .title {
+    font-family: 'Bebas Neue', 'Inter', sans-serif;
+    font-size: 26px; font-weight: 900;
+    color: #fff; letter-spacing: 4px; line-height: 1;
+  }
+  .headline .sub {
+    font-size: 7px; font-weight: 600;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; margin-top: 2px; text-transform: uppercase;
+  }
+
+  /* ===== BOTTOM GROUP (shared: P2-P5) ===== */
+  .bottom-group {
+    position: absolute;
+    bottom: 60px;
+    left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 20px 6px;
+    background: transparent;
+    pointer-events: none;
+  }
+  .bottom-group .hint {
+    font-size: 6px; font-weight: 600;
+    color: rgba(255,255,255,0.13);
+    letter-spacing: 2px;
+  }
+  .bottom-group .selected-row {
+    font-size: 7px; font-weight: 600;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 1.5px; margin-top: 6px;
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center;
+  }
+  .bottom-group .selected-row .dot {
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(255,215,0,0.25);
+  }
+  .bottom-group .selected-row strong { color: rgba(255,215,0,0.5); font-weight: 700; }
+  .bottom-group .selected-row em { color: rgba(255,255,255,0.4); font-style: normal; }
+  .bottom-group .next-btn { pointer-events: auto; margin-top: 10px; }
+
+  .next-btn {
+    padding: 8px 32px;
+    background: #FFD700;
+    border: none; border-radius: 6px;
+    font-size: 11px; font-weight: 800;
+    color: #000; letter-spacing: 2px;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'Bebas Neue', 'Inter', sans-serif;
+  }
+  .next-btn:hover { box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+  .next-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  /* ============================================
+     P1 — WELCOME / START (poster style)
+     ============================================ */
+  .poster-bg {
+    position: absolute; inset: 0;
+    background: #0d0d14; z-index: 0;
+  }
+  .poster-bg .noise {
+    position: absolute; inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 256px 256px;
+  }
+  .strips .strip { border-right: 1px solid rgba(255,255,255,0.02); }
+  .strips .strip:last-child { border-right: none; }
+  .strips .strip:nth-child(1)::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(255,71,87,0.04) 100%);
+  }
+  .strips .strip:nth-child(2)::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(30,144,255,0.04) 100%);
+  }
+  .strips .strip:nth-child(3)::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(255,215,0,0.04) 100%);
+  }
+  .strips .strip:nth-child(4)::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,255,136,0.04) 100%);
+  }
+  .strips .strip:nth-child(5)::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(168,85,247,0.04) 100%);
+  }
+
+  .top-branding {
+    position: absolute; top: 16px; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    padding: 0 20px; z-index: 10; align-items: flex-start;
+  }
+  .top-branding .left-brand .csl-logo { font-weight: 900; font-size: 18px; color: #FFD700; letter-spacing: -0.5px; }
+  .top-branding .left-brand .csl-sub { font-size: 7px; font-weight: 600; color: rgba(255,215,0,0.4); letter-spacing: 1.5px; margin-top: 1px; }
+  .top-branding .right-brand { text-align: right; display: flex; align-items: center; gap: 6px; }
+  .top-branding .right-brand .event-name { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6); letter-spacing: 2px; }
+  .top-branding .right-brand .event-year { font-size: 7px; font-weight: 600; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+
+  /* Signal bars inside right-brand */
+  .top-branding .right-brand .signal-bars {
+    display: inline-flex; align-items: flex-end; gap: 2px;
+  }
+  .top-branding .right-brand .signal-bars .bar {
+    width: 4px;
+    background: linear-gradient(180deg, #00E5FF, transparent);
+    border-radius: 1.5px;
+    opacity: 0.2;
+    animation: signalPulse 2s ease-in-out infinite;
+  }
+  .top-branding .right-brand .signal-bars .bar:nth-child(1) { height: 7px; animation-delay: 0s; }
+  .top-branding .right-brand .signal-bars .bar:nth-child(2) { height: 11px; animation-delay: 0.2s; }
+  .top-branding .right-brand .signal-bars .bar:nth-child(3) { height: 15px; animation-delay: 0.4s; }
+  .top-branding .right-brand .signal-bars .bar:nth-child(4) { height: 19px; animation-delay: 0.6s; }
+  .top-branding .right-brand .signal-bars .bar:nth-child(5) { height: 23px; animation-delay: 0.8s; }
+
+  .char-row {
+    position: absolute; top: 60px; left: 0; right: 0;
+    height: 340px; z-index: 5; display: flex; pointer-events: none;
+  }
+  .char-row .slot { flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+  .char-row .slot .figure { width: 80%; height: 85%; position: relative; }
+  .char-row .slot .figure svg { width: 100%; height: 100%; }
+  .char-row .slot .glow {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 120%; height: 40%;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,215,0,0.03) 0%, transparent 70%);
+    z-index: -1;
+  }
+  .char-row .slot .attr-icon {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    font-size: 18px; opacity: 0.15; z-index: 2;
+  }
+  .char-row .slot .attr-label {
+    position: absolute; bottom: -2px; left: 0; right: 0; text-align: center;
+    font-size: 6px; font-weight: 700; color: rgba(255,255,255,0.08);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  .main-title-area {
+    position: absolute; bottom: 100px; left: 0; right: 0;
+    z-index: 10; text-align: center; pointer-events: none;
+  }
+  .main-title-area .pre-title { font-size: 9px; font-weight: 700; color: rgba(255,215,0,0.05); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 2px; }
+  .main-title-area .big-title {
+    font-family: 'Bebas Neue', 'Inter', sans-serif;
+    font-size: 56px; font-weight: 900; color: #fff;
+    letter-spacing: 6px; line-height: 0.85; text-transform: uppercase;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .main-title-area .big-title .highlight { color: #FFD700; }
+  .main-title-area .sub-title { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.25); letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
+
+  .announce-box {
+    position: absolute; bottom: 58px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; align-items: center; gap: 14px;
+    background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.12);
+    border-radius: 8px; padding: 6px 18px; pointer-events: none;
+  }
+  .announce-box .line { width: 20px; height: 1px; background: rgba(255,215,0,0.2); }
+  .announce-box .text { font-size: 8px; font-weight: 600; color: rgba(255,215,0,0.6); letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+  .announce-box .text strong { color: #FFD700; font-weight: 800; }
+
+  .phone-deco {
+    position: absolute; bottom: 180px; left: 10px;
+    z-index: 2; pointer-events: none; opacity: 0.06;
+  }
+  .phone-deco svg { width: 36px; height: 72px; }
+
+  .ai-circuit {
+    position: absolute; top: 140px; left: 10px;
+    z-index: 2; pointer-events: none; opacity: 0.05;
+  }
+  .ai-circuit svg { width: 50px; height: 50px; }
+
+  .theme-tag {
+    position: absolute; top: 102px; left: 50%; transform: translateX(-50%);
+    z-index: 16;
+    display: flex; align-items: center; gap: 5px; pointer-events: none;
+  }
+  .theme-tag span {
+    font-size: 5px; font-weight: 700; color: rgba(255,255,255,0.08);
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 2px 6px; border: 1px solid rgba(255,255,255,0.04); border-radius: 4px;
+  }
+  .theme-tag span:nth-child(1) { color: #00E5FF; border-color: rgba(0,229,255,0.12); }
+  .theme-tag span:nth-child(2) { color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.04); }
+  .theme-tag span:nth-child(3) { color: #B388FF; border-color: rgba(179,136,255,0.12); }
+  .theme-tag span:nth-child(4) { color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.04); }
+  .theme-tag span:nth-child(5) { color: #00E5FF; border-color: rgba(0,229,255,0.12); }
+
+  .rules-overlay {
+    position: absolute; top: 130px; left: 50%; transform: translateX(-50%);
+    z-index: 15; background: rgba(0,0,0,0.1);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,215,0,0.1); border-radius: 12px;
+    padding: 16px 20px; min-width: 220px; pointer-events: none;
+  }
+  .rules-overlay .rules-title { font-size: 8px; font-weight: 700; color: rgba(255,215,0,0.5); letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 10px; }
+  .rules-overlay .rule-item { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; opacity: 0.85; }
+  .rules-overlay .rule-item:last-child { margin-bottom: 0; }
+  .rules-overlay .rule-item .r-num {
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1px solid rgba(255,215,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: #FFD700;
+    flex-shrink: 0; background: rgba(255,215,0,0.06);
+  }
+  .rules-overlay .rule-item .r-text { font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 1.5px; }
+  .rules-overlay .rule-item .r-text em { font-style: normal; color: #FFD700; font-weight: 700; }
+
+  .start-btn-area {
+    position: absolute; top: 308px; left: 50%; transform: translateX(-50%); z-index: 20;
+  }
+  .start-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 32px; background: #FFD700; border: none;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(255,215,0,0.15);
+  }
+  .start-btn:hover { box-shadow: 0 6px 30px rgba(255,215,0,0.25); transform: translateY(-1px); }
+  .start-btn .btn-text { font-size: 13px; font-weight: 800; color: #000; letter-spacing: 3px; text-transform: uppercase; font-family: 'Bebas Neue', 'Inter', sans-serif; }
+  .start-btn .btn-arrow { font-size: 16px; color: #000; }
+
+  .deco-line {
+    position: absolute; z-index: 0; pointer-events: none;
+  }
+  .deco-line.d1 { top: 80px; right: -40px; width: 200px; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.04)); transform: rotate(25deg); }
+  .deco-line.d2 { bottom: 200px; left: -60px; width: 300px; height: 1px; background: linear-gradient(90deg, rgba(255,215,0,0.03), transparent); transform: rotate(-15deg); }
+
+  .corner-deco { position: absolute; z-index: 1; pointer-events: none; }
+  .corner-deco.tl { top: 50px; left: 14px; width: 20px; height: 20px; border-top: 1px solid rgba(255,215,0,0.08); border-left: 1px solid rgba(255,215,0,0.08); }
+  .corner-deco.tr { top: 50px; right: 14px; width: 20px; height: 20px; border-top: 1px solid rgba(255,215,0,0.08); border-right: 1px solid rgba(255,215,0,0.08); }
+
+  /* ============================================
+     P2 — CONTRACTOR PROFILE
+     ============================================ */
+  #page2 .diag-p2 {
+    position: absolute; top: -60px; right: -100px;
+    width: 300px; height: 400px;
+    background: linear-gradient(180deg, rgba(255,215,0,0.03) 0%, transparent 60%);
+    transform: rotate(18deg); pointer-events: none; z-index: 0;
+  }
+  .gender-area {
+    position: absolute; top: 95px; left: 30px; right: 30px;
+    z-index: 5; display: flex; gap: 12px;
+  }
+  .gender-btn {
+    flex: 1; height: 70px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    font-family: 'Inter', sans-serif;
+  }
+  .gender-btn .icon { font-size: 22px; transition: all 0.2s; }
+  .gender-btn .label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; }
+  .gender-btn:hover { border-color: rgba(255,215,0,0.2); background: rgba(255,215,0,0.04); }
+  .gender-btn.active { border-color: #FFD700; background: rgba(255,215,0,0.08); box-shadow: 0 0 20px rgba(255,215,0,0.08); }
+  .gender-btn.active .icon { color: #FFD700; }
+  .gender-btn.active .label { color: #FFD700; }
+  .gender-btn.female.active { border-color: #FF69B4; background: rgba(255,105,180,0.08); }
+  .gender-btn.female.active .icon { color: #FF69B4; }
+  .gender-btn.female.active .label { color: #FF69B4; }
+  .gender-btn.male.active { border-color: #4FC3F7; background: rgba(79,195,247,0.08); }
+  .gender-btn.male.active .icon { color: #4FC3F7; }
+  .gender-btn.male.active .label { color: #4FC3F7; }
+
+  .name-area {
+    position: absolute; top: 180px; left: 40px; right: 40px; z-index: 5; text-align: center;
+  }
+  .name-field {
+    width: 100%; padding: 12px 16px; font-size: 18px; font-weight: 800;
+    color: #fff; text-align: center; letter-spacing: 4px;
+    background: rgba(255,215,0,0.04); border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 10px; outline: none; transition: all 0.2s;
+    font-family: 'Bebas Neue', 'Inter', sans-serif; cursor: default; caret-color: #FFD700;
+  }
+  .name-field:focus { border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.1); background: rgba(255,215,0,0.06); }
+  .name-field::placeholder { color: rgba(255,255,255,0.08); font-weight: 600; letter-spacing: 3px; }
+  .name-hint { font-size: 6px; color: rgba(255,255,255,0.12); letter-spacing: 2px; margin-top: 6px; }
+  .name-hint .count { color: rgba(255,215,0,0.4); font-weight: 700; }
+
+  .kbd-area {
+    position: absolute; top: 240px; left: 20px; right: 20px; z-index: 5;
+  }
+  .kbd-row { display: flex; gap: 5px; margin-bottom: 5px; justify-content: center; }
+  .kbd-key {
+    width: 32px; height: 38px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+  }
+  .kbd-key:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,215,0,0.2); }
+  .kbd-key:active { background: rgba(255,215,0,0.15); border-color: #FFD700; transform: scale(0.95); }
+  .kbd-key.special { background: rgba(255,215,0,0.05); border-color: rgba(255,215,0,0.1); color: #FFD700; font-weight: 700; }
+  .kbd-key.wide { width: 48px; }
+  .kbd-key.xwide { width: 70px; }
+  .kbd-key.xxwide { width: 110px; }
+
+  /* ============================================
+     P3 & P4 — CAROUSEL (shared styles)
+     ============================================ */
+  .carousel-area {
+    position: absolute; top: 100px; left: 0; right: 0;
+    height: 280px; z-index: 5;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .carousel-track { position: relative; width: 100%; height: 260px; display: flex; align-items: center; justify-content: center; perspective: 800px; }
+  .carousel-item {
+    position: absolute; width: 110px; height: 145px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    cursor: pointer; overflow: hidden; backdrop-filter: blur(4px);
+  }
+  .carousel-item.pos-0 { transform: translateX(-140px) scale(0.72) translateY(10px); opacity: 0.25; filter: blur(3px); z-index: 1; }
+  .carousel-item.pos-1 { transform: translateX(-75px) scale(0.82) translateY(4px); opacity: 0.45; filter: blur(1.5px); z-index: 2; }
+  .carousel-item.pos-2 { transform: translateX(0) scale(1) translateY(0); opacity: 1; filter: blur(0); z-index: 5; border-color: #FFD700; background: rgba(255,215,0,0.06); box-shadow: 0 0 30px rgba(255,215,0,0.1); }
+  .carousel-item.pos-3 { transform: translateX(75px) scale(0.82) translateY(4px); opacity: 0.45; filter: blur(1.5px); z-index: 2; }
+  .carousel-item.pos-4 { transform: translateX(140px) scale(0.72) translateY(10px); opacity: 0.25; filter: blur(3px); z-index: 1; }
+  .carousel-item.pos-hidden { transform: translateX(300px) scale(0.4); opacity: 0; filter: blur(5px); z-index: 0; pointer-events: none; }
+
+  .carousel-item .accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.5; transition: opacity 0.3s; }
+  .carousel-item.pos-2 .accent { opacity: 1; }
+  .a-fire { background: linear-gradient(90deg, #ff4757, #ff6b81); }
+  .a-water { background: linear-gradient(90deg, #1e90ff, #4da6ff); }
+  .a-thunder { background: linear-gradient(90deg, #ffd700, #ffe44d); }
+  .a-wind { background: linear-gradient(90deg, #00ff88, #4dffaa); }
+  .a-shadow { background: linear-gradient(90deg, #a855f7, #c084fc); }
+
+  .carousel-item .emoji { font-size: 32px; transition: font-size 0.3s; }
+  .carousel-item.pos-2 .emoji { font-size: 38px; }
+  .carousel-item .name { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 2px; transition: all 0.3s; }
+  .carousel-item.pos-2 .name { font-size: 11px; color: #fff; }
+  .carousel-item .desc { font-size: 5px; color: rgba(255,255,255,0.1); letter-spacing: 1px; text-align: center; line-height: 1.3; transition: all 0.3s; }
+  .carousel-item.pos-2 .desc { font-size: 6px; color: rgba(255,255,255,0.3); }
+
+  .carousel-item .w-icon { font-size: 36px; transition: font-size 0.3s; }
+  .carousel-item.pos-2 .w-icon { font-size: 44px; }
+  .carousel-item .w-name { font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase; transition: all 0.3s; }
+  .carousel-item.pos-2 .w-name { font-size: 10px; color: #fff; }
+  .carousel-item .w-type { font-size: 6px; font-weight: 600; color: rgba(255,255,255,0.12); letter-spacing: 1.5px; transition: all 0.3s; }
+  .carousel-item.pos-2 .w-type { font-size: 7px; color: rgba(255,215,0,0.4); }
+
+  .swipe-hint { position: absolute; top: 50%; transform: translateY(-50%); z-index: 8; pointer-events: none; font-size: 14px; color: rgba(255,255,255,0.08); }
+  .swipe-hint.left { left: 10px; }
+  .swipe-hint.right { right: 10px; }
+
+  .nav-dots {
+    position: absolute; top: 360px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 8px; z-index: 5;
+  }
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-dot.active { background: #FFD700; box-shadow: 0 0 6px rgba(255,215,0,0.4); }
+
+  .diag-carousel {
+    position: absolute; top: -40px; right: -80px;
+    width: 300px; height: 400px;
+    background: linear-gradient(180deg, rgba(255,215,0,0.03) 0%, transparent 60%);
+    transform: rotate(15deg); pointer-events: none; z-index: 0;
+  }
+  .diag-weapon {
+    position: absolute; top: -80px; left: -100px;
+    width: 350px; height: 450px;
+    background: linear-gradient(180deg, rgba(255,215,0,0.03) 0%, transparent 60%);
+    transform: rotate(-12deg); pointer-events: none; z-index: 0;
+  }
+
+  /* ============================================
+     P5 — PHOTO TAKING
+     ============================================ */
+  .cam-area { position: absolute; top: 104px; left: 30px; right: 30px; z-index: 5; }
+  .cam-frame { width: 100%; aspect-ratio: 4/3; background: #1a1a2e; border-radius: 14px; border: 1px solid rgba(255,215,0,0.1); position: relative; overflow: hidden; }
+  .cam-frame .preview-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, #2d2d4e 0%, #1a1a2e 100%); }
+  .cam-frame .face-guide {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 120px; height: 145px;
+    border: 1.5px dashed rgba(255,215,0,0.2); border-radius: 40%;
+  }
+  .cam-frame .face-guide::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90px; height: 110px;
+    border: 1px dashed rgba(255,215,0,0.1); border-radius: 35%;
+  }
+  .guide-label {
+    position: absolute; bottom: 12px; left: 0; right: 0; text-align: center;
+    font-size: 6px; font-weight: 600; color: rgba(255,215,0,0.15);
+    letter-spacing: 2px; text-transform: uppercase; z-index: 5;
+  }
+
+  .cam-phone-ui {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 6;
+    pointer-events: none; padding: 4px 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cam-phone-ui .time { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.2); font-family: 'Inter', sans-serif; }
+  .cam-phone-ui .signal { display: flex; align-items: center; gap: 4px; }
+  .cam-phone-ui .signal span { font-size: 5px; color: rgba(255,255,255,0.15); letter-spacing: 1px; }
+  .cam-phone-ui .signal .bars { display: flex; align-items: flex-end; gap: 1.5px; }
+  .cam-phone-ui .signal .bars .b { width: 3px; background: rgba(0,229,255,0.3); border-radius: 1px; }
+  .cam-phone-ui .signal .bars .b:nth-child(1) { height: 5px; }
+  .cam-phone-ui .signal .bars .b:nth-child(2) { height: 9px; }
+  .cam-phone-ui .signal .bars .b:nth-child(3) { height: 13px; }
+  .cam-phone-ui .signal .bars .b:nth-child(4) { height: 17px; }
+  .cam-phone-ui .signal .bars .b:nth-child(5) { height: 21px; }
+
+  .cam-phone-brand {
+    position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+    z-index: 6; pointer-events: none;
+  }
+  .cam-phone-brand span { font-size: 5px; font-weight: 700; color: rgba(255,255,255,0.06); letter-spacing: 1px; text-transform: uppercase; }
+
+  .cam-frame .corner { position: absolute; width: 16px; height: 16px; border-color: rgba(255,215,0,0.12); border-style: solid; z-index: 2; }
+  .cam-frame .corner.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+  .cam-frame .corner.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+  .cam-frame .corner.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+  .cam-frame .corner.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+  .countdown-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; transition: background 0.3s; pointer-events: none;
+  }
+  .countdown-overlay.active { background: rgba(0,0,0,0.6); }
+  .countdown-num {
+    font-family: 'Bebas Neue', 'Inter', sans-serif;
+    font-size: 90px; font-weight: 900; color: #FFD700;
+    opacity: 0; transform: scale(0.5); transition: all 0.3s;
+  }
+  .countdown-num.show { opacity: 1; transform: scale(1); }
+
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 15; pointer-events: none; transition: opacity 0.1s; }
+
+  .capture-btn {
+    position: absolute; top: 400px; left: 50%; transform: translateX(-50%);
+    z-index: 8; width: 56px; height: 56px; border-radius: 50%;
+    background: #FFD700; border: 3px solid #e6c200;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .capture-btn:active { transform: translateX(-50%) scale(0.92); border-color: #ccaa00; }
+  .capture-btn .inner { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #d4aa00; }
+
+  .post-actions {
+    position: absolute; top: 400px; left: 0; right: 0;
+    z-index: 8; display: flex; gap: 14px; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .post-actions.visible { opacity: 1; pointer-events: auto; }
+  .post-actions .act-btn {
+    padding: 10px 20px; border-radius: 8px;
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif; border: none;
+  }
+  .act-btn.retake { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.4); }
+  .act-btn.retake:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.6); }
+  .act-btn.confirm { background: #FFD700; color: #000; }
+  .act-btn.confirm:hover { box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+
+  /* ============================================
+     P6 — RESULT (loading + card)
+     ============================================ */
+  .phase-loading {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 5; transition: opacity 0.4s;
+  }
+  .phase-loading.hidden { opacity: 0; pointer-events: none; }
+  .stage-row { display: flex; gap: 4px; margin-bottom: 18px; }
+  .stage-row .stage {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 6px; font-weight: 700; letter-spacing: 1px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+    color: rgba(255,255,255,0.15);
+    transition: all 0.4s;
+  }
+  .stage-row .stage.active { border-color: #00E5FF; color: #fff; background: rgba(0,229,255,0.08); box-shadow: 0 0 12px rgba(0,229,255,0.06); }
+  .stage-row .stage.done { border-color: #00E676; color: #00E676; background: rgba(0,230,118,0.08); }
+  .stage-row .stage:last-child.active { border-color: #B388FF; color: #fff; background: rgba(179,136,255,0.08); box-shadow: 0 0 12px rgba(179,136,255,0.06); }
+
+  .spin-ring {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 3px solid rgba(255,215,0,0.08);
+    border-top-color: #FFD700;
+    animation: spin 1.2s linear infinite;
+    margin-bottom: 20px; position: relative;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin-ring .center-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 900; color: #FFD700; letter-spacing: -0.3px; }
+
+  .loading-title { font-family: 'Bebas Neue', 'Inter', sans-serif; font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 4px; margin-bottom: 4px; }
+  .loading-sub { font-size: 7px; font-weight: 600; color: rgba(255,255,255,0.25); letter-spacing: 2px; text-align: center; line-height: 1.6; margin-bottom: 16px; }
+  .progress-wrap { width: 200px; }
+  .progress-bar-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar-fill { height: 100%; background: #FFD700; border-radius: 2px; transition: width 0.5s; width: 0%; }
+  .progress-pct { text-align: center; font-size: 8px; font-weight: 700; color: rgba(255,215,0,0.5); letter-spacing: 2px; font-family: 'Bebas Neue', 'Inter', sans-serif; }
+  .trivia { position: absolute; bottom: 90px; left: 0; right: 0; text-align: center; z-index: 5; }
+  .trivia .t-line { font-size: 6px; color: rgba(255,255,255,0.1); letter-spacing: 1.5px; transition: opacity 0.5s; }
+  .trivia .t-line.visible { color: rgba(255,255,255,0.18); }
+
+  .phase-result {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center;
+    z-index: 5; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+  }
+  .phase-result.visible { opacity: 1; pointer-events: auto; }
+  .result-headline { position: absolute; top: 44px; left: 0; right: 0; text-align: center; }
+  .result-headline .title { font-family: 'Bebas Neue', 'Inter', sans-serif; font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 4px; }
+  .result-headline .sub { font-size: 7px; font-weight: 600; color: rgba(255,255,255,0.2); letter-spacing: 2px; margin-top: 2px; }
+
+  .card-preview-area {
+    position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+    width: 150px; height: 210px; border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    margin: 0 auto;
+  }
+  .card-preview-area .cp-top { position: absolute; top: 0; left: 0; right: 0; height: 16px; background: #FFD700; }
+  .card-preview-area .cp-name { position: absolute; top: 30px; left: 0; right: 0; text-align: center; font-family: 'Bebas Neue', 'Inter', sans-serif; font-size: 22px; color: rgba(255,215,0,0.08); letter-spacing: 4px; }
+  .card-preview-area .cp-attr { position: absolute; top: 48px; left: 8px; display: flex; align-items: center; gap: 4px; }
+  .card-preview-area .cp-attr .cp-icon { font-size: 10px; }
+  .card-preview-area .cp-attr .cp-label { font-size: 6px; font-weight: 700; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+  .card-preview-area .cp-wpn { position: absolute; bottom: 30px; right: 8px; font-size: 6px; font-weight: 700; color: rgba(255,255,255,0.15); letter-spacing: 1px; }
+  .card-preview-area .cp-silhouette {
+    position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 100px; opacity: 0.1;
+    background: radial-gradient(ellipse at 50% 20%, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 40% 40% 0 0;
+  }
+  .card-preview-area .cp-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 10px; background: #FFD700; }
+
+  .flip-hint { position: absolute; top: 318px; left: 0; right: 0; text-align: center; font-size: 6px; color: rgba(255,255,255,0.15); letter-spacing: 1.5px; }
+
+  .result-actions { position: absolute; top: 345px; left: 30px; right: 30px; display: flex; gap: 8px; justify-content: center; }
+  .result-actions .ra-btn {
+    padding: 7px 12px; border-radius: 8px; font-size: 7px; font-weight: 700;
+    letter-spacing: 1.5px; cursor: pointer; transition: all 0.15s;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.35);
+  }
+  .result-actions .ra-btn:hover { border-color: rgba(255,215,0,0.3); color: rgba(255,255,255,0.6); }
+  .result-actions .ra-btn.print { background: #FFD700; color: #000; border-color: #FFD700; padding: 7px 24px; font-size: 9px; }
+  .result-actions .ra-btn.print:hover { box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+
+  .qr-section { position: absolute; top: 405px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .mini-qr {
+    width: 60px; height: 60px;
+    background: repeating-conic-gradient(#111 0% 25%,#fff 0% 50%) 0 0/8px 8px;
+    border-radius: 6px; border: 1px solid rgba(255,215,0,0.2); position: relative;
+  }
+  .mini-qr .qr-dot { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 14px; height: 14px; background: #fff; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 5px; font-weight: 900; color: #111; }
+  .qr-text { font-size: 7px; color: rgba(255,255,255,0.22); letter-spacing: 1.5px; line-height: 1.6; }
+  .qr-text strong { color: rgba(255,215,0,0.5); font-weight: 700; }
+
+  .result-bottom { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 5px; color: rgba(255,255,255,0.08); letter-spacing: 2px; text-transform: uppercase; }
+
+  /* ============================================
+     NAVIGATION
+     ============================================ */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 16px;
+    width: 400px;
+  }
+  .nav-arrow {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,215,0,0.15);
+    background: rgba(255,215,0,0.04);
+    color: #FFD700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    flex-shrink: 0;
+  }
+  .nav-arrow:hover {
+    background: rgba(255,215,0,0.1);
+    border-color: rgba(255,215,0,0.3);
+  }
+  .nav-arrow:active {
+    transform: scale(0.9);
+  }
+  .nav-arrow.disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .progress-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .progress-dot.active {
+    background: #FFD700;
+    box-shadow: 0 0 8px rgba(255,215,0,0.5);
+    width: 10px; height: 10px;
+  }
+  .progress-dot:hover {
+    background: rgba(255,215,0,0.3);
+  }
+  .nav-step-label {
+    font-family: 'Bebas Neue', 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 2px;
+    min-width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .nav-step-label em {
+    font-style: normal;
+    color: #FFD700;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 420px) {
+    .screen { width: 340px; height: 493px; border-radius: 16px; border-width: 1.5px; }
+    .nav-bar { width: 340px; gap: 10px; }
+    .nav-step-label { font-size: 10px; min-width: 34px; }
+    body { padding: 12px 6px; }
+    .csl-top { height: 20px; }
+    .csl-top .logo { font-size: 11px; }
+    .main-title-area .big-title { font-size: 44px; letter-spacing: 4px; }
+    .char-row .slot .figure { height: 75%; }
+    .rules-overlay { top: 110px; min-width: 180px; padding: 12px 16px; }
+    .start-btn-area { top: 268px; }
+    .char-row { height: 280px; }
+    .gender-btn { height: 60px; }
+    .kbd-key { width: 28px; height: 34px; font-size: 10px; }
+    .kbd-key.wide { width: 40px; }
+    .kbd-key.xwide { width: 58px; }
+    .kbd-key.xxwide { width: 92px; }
+    .carousel-item { width: 94px; height: 124px; }
+    .carousel-item.pos-0 { transform: translateX(-110px) scale(0.72) translateY(10px); }
+    .carousel-item.pos-1 { transform: translateX(-62px) scale(0.82) translateY(4px); }
+    .carousel-item.pos-3 { transform: translateX(62px) scale(0.82) translateY(4px); }
+    .carousel-item.pos-4 { transform: translateX(110px) scale(0.72) translateY(10px); }
+    .cam-area { left: 20px; right: 20px; }
+    .capture-btn { top: 340px; width: 48px; height: 48px; }
+    .capture-btn .inner { width: 36px; height: 36px; }
+    .post-actions { top: 340px; }
+    .post-actions .act-btn { padding: 8px 14px; font-size: 8px; }
+    .headline .title { font-size: 22px; }
+    .name-field { font-size: 16px; }
+    .name-area { left: 28px; right: 28px; }
+    .kbd-area { left: 12px; right: 12px; }
+    .gender-area { left: 24px; right: 24px; }
+    .main-title-area .pre-title { font-size: 7px; }
+    .main-title-area .sub-title { font-size: 8px; }
+    .stage-row .stage { font-size: 5px; padding: 3px 7px; }
+    .card-preview-area { width: 128px; height: 180px; }
+    .result-actions { top: 300px; }
+    .qr-section { top: 350px; }
+    .flip-hint { top: 275px; }
+    .cam-frame .face-guide { width: 100px; height: 120px; }
+    .cam-frame .face-guide::after { width: 76px; height: 92px; }
+  }
+
+  @media (max-width: 360px) {
+    .screen { width: 300px; height: 435px; border-radius: 14px; }
+    .nav-bar { width: 300px; gap: 8px; }
+    .nav-step-label { font-size: 9px; min-width: 30px; }
+    .main-title-area .big-title { font-size: 38px; letter-spacing: 3px; }
+    .char-row { height: 240px; }
+    .rules-overlay { top: 98px; min-width: 150px; padding: 10px 12px; }
+    .start-btn-area { top: 238px; }
+    .start-btn { padding: 8px 24px; }
+    .csl-top { height: 26px; }
+    .csl-top .logo { font-size: 13px; }
+    .headline .title { font-size: 20px; }
+    .headline { top: 38px; }
+    .gender-area { top: 82px; left: 18px; right: 18px; }
+    .gender-btn { height: 52px; }
+    .name-area { top: 150px; left: 22px; right: 22px; }
+    .name-field { font-size: 14px; padding: 10px 12px; }
+    .kbd-area { top: 200px; left: 8px; right: 8px; }
+    .kbd-key { width: 24px; height: 30px; font-size: 9px; }
+    .kbd-key.wide { width: 36px; }
+    .kbd-key.xwide { width: 52px; }
+    .kbd-key.xxwide { width: 80px; }
+    .kbd-row { gap: 3px; margin-bottom: 3px; }
+    .carousel-area { top: 86px; }
+    .carousel-item { width: 82px; height: 108px; }
+    .carousel-item.pos-0 { transform: translateX(-94px) scale(0.72) translateY(10px); }
+    .carousel-item.pos-1 { transform: translateX(-52px) scale(0.82) translateY(4px); }
+    .carousel-item.pos-3 { transform: translateX(52px) scale(0.82) translateY(4px); }
+    .carousel-item.pos-4 { transform: translateX(94px) scale(0.72) translateY(10px); }
+    .nav-dots { top: 310px; }
+    .cam-area { top: 88px; left: 14px; right: 14px; }
+    .capture-btn { top: 300px; width: 42px; height: 42px; }
+    .capture-btn .inner { width: 32px; height: 32px; }
+    .post-actions { top: 300px; }
+    .spin-ring { width: 64px; height: 64px; }
+    .card-preview-area { width: 110px; height: 156px; }
+    .result-actions { top: 268px; }
+    .qr-section { top: 310px; }
+    .flip-hint { top: 244px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-wrapper">
+
+  <!-- ════════════════════════════════════════════
+       PAGE 1 — WELCOME / START
+       ════════════════════════════════════════════ -->
+  <div class="page active" id="page1">
+    <div class="screen">
+      <div class="poster-bg"><div class="noise"></div></div>
+      <div class="deco-line d1"></div>
+      <div class="deco-line d2"></div>
+      <div class="phone-deco">
+        <svg viewBox="0 0 30 60" fill="none">
+          <rect x="2" y="1" width="26" height="58" rx="4" stroke="#FFD700" stroke-width="0.8" fill="none"/>
+          <rect x="6" y="6" width="18" height="36" rx="1" stroke="#FFD700" stroke-width="0.4" fill="none" opacity="0.5"/>
+          <circle cx="15" cy="52" r="2" stroke="#FFD700" stroke-width="0.4" fill="none"/>
+        </svg>
+      </div>
+      <div class="ai-circuit">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="10" y="10" width="8" height="8" rx="1" stroke="#B388FF" stroke-width="0.6" fill="none"/>
+          <rect x="22" y="10" width="8" height="8" rx="1" stroke="#B388FF" stroke-width="0.6" fill="none"/>
+          <rect x="10" y="22" width="8" height="8" rx="1" stroke="#B388FF" stroke-width="0.6" fill="none"/>
+          <rect x="22" y="22" width="8" height="8" rx="1" stroke="#B388FF" stroke-width="0.6" fill="none"/>
+          <line x1="18" y1="14" x2="22" y2="14" stroke="#B388FF" stroke-width="0.4"/>
+          <line x1="14" y1="18" x2="14" y2="22" stroke="#B388FF" stroke-width="0.4"/>
+          <line x1="26" y1="18" x2="26" y2="22" stroke="#B388FF" stroke-width="0.4"/>
+          <line x1="18" y1="26" x2="22" y2="26" stroke="#B388FF" stroke-width="0.4"/>
+        </svg>
+      </div>
+      <div class="corner-deco tl"></div>
+      <div class="corner-deco tr"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+      <div class="top-branding">
+        <div class="left-brand">
+          <div class="csl-logo">csl.</div>
+          <div class="csl-sub">5G CONTRACT</div>
+        </div>
+        <div class="right-brand">
+          <div class="event-name">ACGHK</div>
+          <div class="event-year">2026</div>
+          <div class="signal-bars">
+            <div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="char-row">
+        <div class="slot">
+          <div class="attr-icon">🔥</div>
+          <div class="figure"><svg viewBox="0 0 60 120" fill="none"><path d="M30 10 Q25 8 22 14 L20 40 Q18 60 16 80 L14 110 L46 110 L44 80 Q42 60 40 40 L38 14 Q35 8 30 10Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><circle cx="30" cy="12" r="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg></div>
+          <div class="glow"></div>
+          <div class="attr-label">FIRE</div>
+        </div>
+        <div class="slot">
+          <div class="attr-icon">💧</div>
+          <div class="figure"><svg viewBox="0 0 60 120" fill="none"><path d="M30 8 Q24 6 22 14 L18 45 Q16 65 16 85 L14 112 L46 112 L44 85 Q44 65 42 45 L38 14 Q36 6 30 8Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><circle cx="30" cy="10" r="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg></div>
+          <div class="glow"></div>
+          <div class="attr-label">WATER</div>
+        </div>
+        <div class="slot">
+          <div class="attr-icon">⚡</div>
+          <div class="figure"><svg viewBox="0 0 60 120" fill="none"><path d="M28 6 Q22 4 20 12 L16 48 Q14 68 14 88 L12 114 L48 114 L46 88 Q46 68 44 48 L40 12 Q38 4 32 6Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><circle cx="30" cy="8" r="7" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg></div>
+          <div class="glow"></div>
+          <div class="attr-label">THUNDER</div>
+        </div>
+        <div class="slot">
+          <div class="attr-icon">🌪️</div>
+          <div class="figure"><svg viewBox="0 0 60 120" fill="none"><path d="M32 8 Q26 5 22 14 L18 44 Q16 66 16 86 L14 114 L46 114 L44 86 Q44 66 42 44 L38 14 Q34 5 32 8Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><circle cx="30" cy="10" r="7" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg></div>
+          <div class="glow"></div>
+          <div class="attr-label">WIND</div>
+        </div>
+        <div class="slot">
+          <div class="attr-icon">🌑</div>
+          <div class="figure"><svg viewBox="0 0 60 120" fill="none"><path d="M30 7 Q24 5 21 13 L17 46 Q15 68 15 88 L13 115 L47 115 L45 88 Q45 68 43 46 L39 13 Q36 5 30 7Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/><circle cx="30" cy="9" r="7" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/></svg></div>
+          <div class="glow"></div>
+          <div class="attr-label">SHADOW</div>
+        </div>
+      </div>
+      <div class="main-title-area">
+        <div class="pre-title">—— csl. 5G presents ——</div>
+        <div class="big-title">
+          契約者<br>REGIST<span class="highlight">R</span>ATION
+        </div>
+        <div class="sub-title">PICK YOUR X · 選擇你的契約</div>
+      </div>
+      <div class="announce-box">
+        <div class="line"></div>
+        <div class="text"><strong>CONTRACTOR</strong> CARD · ACGHK 2026</div>
+        <div class="line"></div>
+      </div>
+      <div class="theme-tag">
+        <span>📱 PHONE</span>
+        <span>×</span>
+        <span>📶 5G NETWORK</span>
+        <span>×</span>
+        <span>🤖 AI</span>
+      </div>
+      <div class="rules-overlay">
+        <div class="rules-title">HOW TO PLAY</div>
+        <div class="rule-item"><div class="r-num">1</div><div class="r-text">Pick your <em>ATTRIBUTE</em></div></div>
+        <div class="rule-item"><div class="r-num">2</div><div class="r-text">Choose your <em>WEAPON</em></div></div>
+        <div class="rule-item"><div class="r-num">3</div><div class="r-text">Take a <em>PHOTO</em></div></div>
+        <div class="rule-item" style="margin-top:2px;opacity:0.6;"><div class="r-num" style="border-color:rgba(255,215,0,0.12);color:rgba(255,215,0,0.4);">★</div><div class="r-text" style="color:rgba(255,215,0,0.5);">Get your <em>CONTRACTOR CARD</em></div></div>
+      </div>
+      <div class="start-btn-area">
+        <button class="start-btn" onclick="goToPage(2)">
+          <span class="btn-text">START</span>
+          <span class="btn-arrow">▶</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PAGE 2 — CONTRACTOR PROFILE
+       ════════════════════════════════════════════ -->
+  <div class="page" id="page2">
+    <div class="screen">
+      <div class="noise"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+      <div class="diag-p2"></div>
+
+      <div class="csl-top">
+        <div class="logo">csl.</div>
+        <div class="step">STEP <em>2</em>/6</div>
+      </div>
+
+      <div class="headline">
+        <div class="title">CONTRACTOR PROFILE</div>
+        <div class="sub">選擇性別 · 輸入你的契約者名稱</div>
+      </div>
+
+      <div class="gender-area">
+        <button class="gender-btn female" id="btnFemale" onclick="selectGender('female')">
+          <span class="icon">♀</span>
+          <span class="label">Female</span>
+        </button>
+        <button class="gender-btn male" id="btnMale" onclick="selectGender('male')">
+          <span class="icon">♂</span>
+          <span class="label">Male</span>
+        </button>
+      </div>
+
+      <div class="name-area">
+        <input type="text" class="name-field" id="nameInput"
+               placeholder="你的英文名" maxlength="12" autocomplete="off">
+        <div class="name-hint">最多 <span class="count" id="charCount">0</span>／12 字元</div>
+      </div>
+
+      <div class="kbd-area">
+        <div class="kbd-row">
+          <button class="kbd-key" onclick="typeChar('Q')">Q</button>
+          <button class="kbd-key" onclick="typeChar('W')">W</button>
+          <button class="kbd-key" onclick="typeChar('E')">E</button>
+          <button class="kbd-key" onclick="typeChar('R')">R</button>
+          <button class="kbd-key" onclick="typeChar('T')">T</button>
+          <button class="kbd-key" onclick="typeChar('Y')">Y</button>
+          <button class="kbd-key" onclick="typeChar('U')">U</button>
+          <button class="kbd-key" onclick="typeChar('I')">I</button>
+          <button class="kbd-key" onclick="typeChar('O')">O</button>
+          <button class="kbd-key" onclick="typeChar('P')">P</button>
+        </div>
+        <div class="kbd-row">
+          <button class="kbd-key" onclick="typeChar('A')">A</button>
+          <button class="kbd-key" onclick="typeChar('S')">S</button>
+          <button class="kbd-key" onclick="typeChar('D')">D</button>
+          <button class="kbd-key" onclick="typeChar('F')">F</button>
+          <button class="kbd-key" onclick="typeChar('G')">G</button>
+          <button class="kbd-key" onclick="typeChar('H')">H</button>
+          <button class="kbd-key" onclick="typeChar('J')">J</button>
+          <button class="kbd-key" onclick="typeChar('K')">K</button>
+          <button class="kbd-key" onclick="typeChar('L')">L</button>
+        </div>
+        <div class="kbd-row">
+          <button class="kbd-key special wide" onclick="typeChar('Z')">Z</button>
+          <button class="kbd-key" onclick="typeChar('X')">X</button>
+          <button class="kbd-key" onclick="typeChar('C')">C</button>
+          <button class="kbd-key" onclick="typeChar('V')">V</button>
+          <button class="kbd-key" onclick="typeChar('B')">B</button>
+          <button class="kbd-key" onclick="typeChar('N')">N</button>
+          <button class="kbd-key" onclick="typeChar('M')">M</button>
+          <button class="kbd-key special xwide" onclick="deleteChar()">⌫</button>
+        </div>
+        <div class="kbd-row">
+          <button class="kbd-key special wide" onclick="typeChar('_')">_</button>
+          <button class="kbd-key special wide" onclick="typeChar('-')">-</button>
+          <button class="kbd-key special xxwide" onclick="typeChar(' ')">SPACE</button>
+          <button class="kbd-key special wide" onclick="typeChar('.')">.</button>
+          <button class="kbd-key special wide" onclick="document.getElementById('nameInput').value=''; updateCount();">CLR</button>
+        </div>
+      </div>
+
+      <div class="bottom-group">
+        <div class="hint">選擇性別 · 鍵盤輸入你的英文名 · 最少 1 個字元</div>
+        <div class="selected-row" id="selRow2">
+          <span class="dot"></span>
+          性別：<em id="genderDisplay">未選擇</em>
+          ｜契約者：<strong id="nameDisplay">—</strong>
+        </div>
+        <button class="next-btn" id="nextBtn2" disabled>下一步 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PAGE 3 — ATTRIBUTE SELECTION (carousel)
+       ════════════════════════════════════════════ -->
+  <div class="page" id="page3">
+    <div class="screen">
+      <div class="noise"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+      <div class="diag-carousel"></div>
+
+      <div class="csl-top">
+        <div class="logo">csl.</div>
+        <div class="step">STEP <em>3</em>/6</div>
+      </div>
+
+      <div class="headline">
+        <div class="title">CHOOSE ATTRIBUTE</div>
+        <div class="sub">選擇你的契約屬性</div>
+      </div>
+
+      <div class="carousel-area" id="p3Carousel">
+        <div class="carousel-track" id="p3Track"></div>
+      </div>
+      <div class="nav-dots" id="p3NavDots"></div>
+      <div class="swipe-hint left" id="p3HintL">◀</div>
+      <div class="swipe-hint right" id="p3HintR">▶</div>
+
+      <div class="bottom-group">
+        <div class="hint"><em>◀</em> 左右掃動選擇 ／ 㩒左右 item 跳轉 <em>▶</em></div>
+        <div class="selected-row" id="p3SelRow">
+          <span class="dot"></span>
+          已選擇：<strong>🔥 FIRE — 烈焰之力，焚燒一切</strong>
+        </div>
+        <button class="next-btn" onclick="goToPage(4)">下一步 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PAGE 4 — WEAPON SELECTION (carousel)
+       ════════════════════════════════════════════ -->
+  <div class="page" id="page4">
+    <div class="screen">
+      <div class="noise"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+      <div class="diag-weapon"></div>
+
+      <div class="csl-top">
+        <div class="logo">csl.</div>
+        <div class="step">STEP <em>4</em>/6</div>
+      </div>
+
+      <div class="headline">
+        <div class="title">CHOOSE WEAPON</div>
+        <div class="sub">選擇你的契約武器</div>
+      </div>
+
+      <div class="carousel-area" id="p4Carousel">
+        <div class="carousel-track" id="p4Track"></div>
+      </div>
+      <div class="nav-dots" id="p4NavDots"></div>
+      <div class="swipe-hint left" id="p4HintL">◀</div>
+      <div class="swipe-hint right" id="p4HintR">▶</div>
+
+      <div class="bottom-group">
+        <div class="hint"><em>◀</em> 左右掃動選擇 ／ 㩒左右 item 跳轉 <em>▶</em></div>
+        <div class="selected-row" id="p4SelRow">
+          <span class="dot"></span>
+          已選擇：<strong>⚔️ KATANA — 太刀，斬裂一切</strong>
+        </div>
+        <button class="next-btn" onclick="goToPage(5)">下一步 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PAGE 5 — PHOTO TAKING
+       ════════════════════════════════════════════ -->
+  <div class="page" id="page5">
+    <div class="screen">
+      <div class="noise"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+
+      <div class="csl-top">
+        <div class="logo">csl.</div>
+        <div class="step">STEP <em>5</em>/6</div>
+      </div>
+
+      <div class="headline">
+        <div class="title">PHOTO</div>
+        <div class="sub">拍攝你的契約者肖像</div>
+      </div>
+
+      <div class="cam-area">
+        <div class="cam-frame" id="camFrame">
+          <div class="cam-phone-ui">
+            <div class="time">9:41</div>
+            <div class="signal">
+              <span>5G</span>
+              <div class="bars">
+                <div class="b"></div><div class="b"></div>
+                <div class="b"></div><div class="b"></div>
+                <div class="b"></div>
+              </div>
+            </div>
+          </div>
+          <div class="cam-phone-brand"><span>SAMSUNG</span></div>
+          <div class="preview-bg"></div>
+          <div class="face-guide"></div>
+          <div class="corner tl"></div>
+          <div class="corner tr"></div>
+          <div class="corner bl"></div>
+          <div class="corner br"></div>
+          <div class="guide-label">FACE GUIDE · 請對準鏡頭</div>
+
+          <div class="countdown-overlay" id="countdownOverlay">
+            <div class="countdown-num" id="countdownNum">3</div>
+          </div>
+          <div class="flash" id="flash"></div>
+        </div>
+      </div>
+
+      <div class="capture-btn" id="captureBtn" onclick="startCapture()">
+        <div class="inner"></div>
+      </div>
+
+      <div class="post-actions" id="postActions">
+        <button class="act-btn retake" onclick="resetCapture()">↻ 再影過</button>
+        <button class="act-btn confirm" onclick="goToPage(6)">✅ 滿意 · 下一步</button>
+      </div>
+
+      <div class="bottom-group">
+        <div class="hint" id="bottomHint">㩒中間圓形快門掣開始拍照</div>
+        <div class="selected-row">
+          <span class="dot"></span>
+          <span id="bottomStatus">準備拍攝：<strong>HIMTOS</strong> · 🔥 KATANA</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       PAGE 6 — RESULT
+       ════════════════════════════════════════════ -->
+  <div class="page" id="page6">
+    <div class="screen">
+      <div class="noise"></div>
+      <div class="strips">
+        <div class="strip"></div><div class="strip"></div>
+        <div class="strip"></div><div class="strip"></div><div class="strip"></div>
+      </div>
+
+      <div class="csl-top">
+        <div class="logo">csl.</div>
+        <div class="status" id="topStatus">⚡ <em>AI</em> 生成中</div>
+      </div>
+
+      <!-- Phase A: Loading -->
+      <div class="phase-loading" id="phaseLoading">
+        <div class="stage-row" id="stageRow">
+          <div class="stage active" id="s1">📶 5G 傳輸中</div>
+          <div class="stage" id="s2">🤖 AI 生成中</div>
+          <div class="stage" id="s3">✅ 完成</div>
+        </div>
+        <div class="spin-ring">
+          <div class="center-logo">csl</div>
+        </div>
+        <div class="loading-title" id="loadingTitle">CONNECTING</div>
+        <div class="loading-sub" id="loadingSub">csl. 5G 正在連繫<br>你的契約者閃卡即將完成</div>
+        <div class="progress-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-pct" id="progressPct">0%</div>
+        </div>
+        <div class="trivia">
+          <div class="t-line visible" id="triviaLine">「契約者登錄中...」</div>
+        </div>
+      </div>
+
+      <!-- Phase B: Result -->
+      <div class="phase-result" id="phaseResult">
+        <div class="result-headline">
+          <div class="title">YOUR CARD</div>
+          <div class="sub">你的契約者閃卡</div>
+        </div>
+        <div class="card-preview-area" id="cardPreview">
+          <div class="cp-top"></div>
+          <div class="cp-name">HIMTOS</div>
+          <div class="cp-attr">
+            <span class="cp-icon">🔥</span>
+            <span class="cp-label">FIRE</span>
+          </div>
+          <div class="cp-silhouette"></div>
+          <div class="cp-wpn">⚔️ KATANA</div>
+          <div class="cp-bottom"></div>
+        </div>
+        <div class="flip-hint">👉 㩒左右箭頭查看正背面</div>
+        <div class="result-actions">
+          <button class="ra-btn" onclick="flipCard()">🔄 翻背面</button>
+          <button class="ra-btn print">🖨️ 列印</button>
+        </div>
+        <div class="qr-section" style="top:405px;">
+          <button class="next-btn" onclick="goToPage(1)" style="font-size:9px;padding:8px 32px;">🔄 重新簽訂契約</button>
+        </div>
+        <div class="result-bottom">CSL 5G · CONTRACT ACTIVE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NAVIGATION BAR ===== -->
+  <div class="nav-bar">
+    <button class="nav-arrow" id="navPrev" onclick="prevPage()">◀</button>
+    <span class="nav-step-label">PAGE <em id="pageNumLabel">1</em>/6</span>
+    <div class="progress-dots" id="progressDots">
+      <button class="progress-dot active" data-page="1" onclick="goToPage(1)"></button>
+      <button class="progress-dot" data-page="2" onclick="goToPage(2)"></button>
+      <button class="progress-dot" data-page="3" onclick="goToPage(3)"></button>
+      <button class="progress-dot" data-page="4" onclick="goToPage(4)"></button>
+      <button class="progress-dot" data-page="5" onclick="goToPage(5)"></button>
+      <button class="progress-dot" data-page="6" onclick="goToPage(6)"></button>
+    </div>
+    <button class="nav-arrow" id="navNext" onclick="nextPage()">▶</button>
+  </div>
+
+</div>
+
+<script>
+  /* ==========================================
+     GLOBAL PAGE NAVIGATION
+     ========================================== */
+  let currentPage = 1;
+  const totalPages = 6;
+
+  function goToPage(num) {
+    if (num < 1 || num > totalPages) return;
+
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+    // Show target page with slight delay for transition effect
+    const target = document.getElementById('page' + num);
+    target.style.opacity = '0';
+    target.classList.add('active');
+    // Force reflow then fade in
+    target.offsetHeight;
+    target.style.opacity = '1';
+
+    // Update dots
+    document.querySelectorAll('.progress-dot').forEach(d => {
+      d.classList.toggle('active', parseInt(d.dataset.page) === num);
+    });
+
+    // Update label
+    document.getElementById('pageNumLabel').textContent = num;
+
+    // Update arrow states
+    document.getElementById('navPrev').classList.toggle('disabled', num === 1);
+    document.getElementById('navNext').classList.toggle('disabled', num === totalPages);
+
+    currentPage = num;
+
+    // Special: auto-start P6 simulation when page 6 is shown
+    if (num === 6 && typeof simulateProgress === 'function') {
+      // Small delay so the page renders first
+      setTimeout(simulateProgress, 300);
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < totalPages) {
+      // For P2, check if form is complete before proceeding
+      if (currentPage === 2) {
+        const nextBtn = document.getElementById('nextBtn2');
+        if (nextBtn.disabled) return;
+      }
+      goToPage(currentPage + 1);
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) goToPage(currentPage - 1);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextPage();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      prevPage();
+    }
+  });
+
+  /* ==========================================
+     P2 — PROFILE (gender + keyboard)
+     ========================================== */
+  const nameInput = document.getElementById('nameInput');
+  const charCount = document.getElementById('charCount');
+  const nameDisplay = document.getElementById('nameDisplay');
+  const genderDisplay = document.getElementById('genderDisplay');
+  const nextBtn2 = document.getElementById('nextBtn2');
+  const btnF = document.getElementById('btnFemale');
+  const btnM = document.getElementById('btnMale');
+  let selectedGender = null;
+
+  function selectGender(g) {
+    selectedGender = g;
+    btnF.classList.toggle('active', g === 'female');
+    btnM.classList.toggle('active', g === 'male');
+    updateCount();
+  }
+
+  function updateCount() {
+    const len = nameInput.value.length;
+    charCount.textContent = len;
+    const nm = nameInput.value || '—';
+    nameDisplay.textContent = nm;
+
+    if (selectedGender === 'female') genderDisplay.textContent = '♀ Female';
+    else if (selectedGender === 'male') genderDisplay.textContent = '♂ Male';
+    else genderDisplay.textContent = '未選擇';
+
+    nextBtn2.disabled = len < 1 || !selectedGender;
+  }
+
+  function typeChar(c) {
+    if (nameInput.value.length >= 12) return;
+    nameInput.value += c;
+    nameInput.focus();
+    updateCount();
+  }
+
+  function deleteChar() {
+    nameInput.value = nameInput.value.slice(0, -1);
+    nameInput.focus();
+    updateCount();
+  }
+
+  nameInput.addEventListener('input', updateCount);
+  updateCount();
+
+  // P2 next button click — navigate to P3
+  nextBtn2.addEventListener('click', function() {
+    if (!this.disabled) goToPage(3);
+  });
+
+  /* ==========================================
+     P3 — ATTRIBUTE CAROUSEL
+     ========================================== */
+  (function() {
+    const items = [
+      { emoji: '🔥', name: 'FIRE', desc: '烈焰之力<br>焚燒一切', color: 'a-fire', label: '🔥 火 — 烈焰之力，焚燒一切' },
+      { emoji: '💧', name: 'WATER', desc: '流水之柔<br>以柔制剛', color: 'a-water', label: '💧 水 — 流水之柔，以柔制剛' },
+      { emoji: '⚡', name: 'THUNDER', desc: '雷電之速<br>疾風迅雷', color: 'a-thunder', label: '⚡ 電 — 雷電之速，疾風迅雷' },
+      { emoji: '🌪️', name: 'WIND', desc: '暴風之刃<br>無形之鋒', color: 'a-wind', label: '🌪️ 風 — 暴風之刃，無形之鋒' },
+      { emoji: '✨', name: 'LIGHT', desc: '智慧光速<br>夜眸之眼', color: 'a-shadow', label: '✨ 光 — 智慧光速夜眸' },
+    ];
+
+    let activeIndex = 0;
+    const total = items.length;
+    const positions = ['pos-0','pos-1','pos-2','pos-3','pos-4'];
+
+    function buildCarousel() {
+      const track = document.getElementById('p3Track');
+      const navDots = document.getElementById('p3NavDots');
+      track.innerHTML = '';
+      navDots.innerHTML = '';
+      items.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot';
+        dot.onclick = () => goTo(i);
+        navDots.appendChild(dot);
+      });
+      updateView();
+    }
+
+    function updateView() {
+      const track = document.getElementById('p3Track');
+      const dots = document.querySelectorAll('#p3NavDots .nav-dot');
+      dots.forEach((d, i) => d.classList.toggle('active', i === activeIndex));
+
+      const allEls = track.querySelectorAll('.carousel-item');
+      if (allEls.length === 0) {
+        items.forEach((item, i) => {
+          const el = document.createElement('div');
+          el.className = 'carousel-item';
+          el.innerHTML = `<div class="accent ${item.color}"></div><div class="emoji">${item.emoji}</div><div class="name">${item.name}</div><div class="desc">${item.desc}</div>`;
+          el.onclick = () => goTo(i);
+          track.appendChild(el);
+        });
+      }
+
+      const refreshed = track.querySelectorAll('.carousel-item');
+      refreshed.forEach((el, i) => {
+        let offset = i - activeIndex;
+        let visualPos;
+        if (offset === 0) visualPos = 2;
+        else if (offset === 1 || offset === -4) visualPos = 3;
+        else if (offset === -1 || offset === 4) visualPos = 1;
+        else if (offset === 2 || offset === -3) visualPos = 4;
+        else if (offset === -2 || offset === 3) visualPos = 0;
+        el.className = 'carousel-item ' + positions[visualPos];
+        if (items[i]) el.querySelector('.accent').className = 'accent ' + items[i].color;
+      });
+
+      document.getElementById('p3SelRow').innerHTML = '<span class="dot"></span> 已選擇：<strong>' + items[activeIndex].label + '</strong>';
+    }
+
+    function goTo(idx) { activeIndex = idx; updateView(); }
+
+    let touchStartX = 0;
+    const carousel = document.getElementById('p3Carousel');
+    carousel.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+    carousel.addEventListener('touchend', (e) => {
+      const diff = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) activeIndex = (activeIndex - 1 + total) % total;
+        else activeIndex = (activeIndex + 1) % total;
+        updateView();
+      }
+    });
+
+    buildCarousel();
+  })();
+
+  /* ==========================================
+     P4 — WEAPON CAROUSEL
+     ========================================== */
+  (function() {
+    const items = [
+      { icon: '🔱', name: 'SPEAR', type: '長槍', label: '🔱 長槍 — 貫穿一切之矛' },
+      { icon: '🗡️', name: 'DUAL', type: '雙刃', label: '🗡️ 雙刃 — 疾風連斬' },
+      { icon: '🏹', name: 'BOW', type: '弓箭', label: '🏹 弓箭 — 百步穿楊' },
+      { icon: '⚔️', name: 'KATANA', type: '武士刀', label: '⚔️ 武士刀 — 斬裂一切' },
+      { icon: '🔮', name: 'STAFF', type: '法杖', label: '🔮 法杖 — 魔力之源' },
+    ];
+
+    let activeIndex = 0;
+    const total = items.length;
+    const positions = ['pos-0','pos-1','pos-2','pos-3','pos-4'];
+
+    function buildCarousel() {
+      const track = document.getElementById('p4Track');
+      const navDots = document.getElementById('p4NavDots');
+      track.innerHTML = '';
+      navDots.innerHTML = '';
+      items.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'nav-dot';
+        dot.onclick = () => goTo(i);
+        navDots.appendChild(dot);
+      });
+      updateView();
+    }
+
+    function updateView() {
+      const track = document.getElementById('p4Track');
+      const dots = document.querySelectorAll('#p4NavDots .nav-dot');
+      dots.forEach((d, i) => d.classList.toggle('active', i === activeIndex));
+
+      const allEls = track.querySelectorAll('.carousel-item');
+      if (allEls.length === 0) {
+        items.forEach((item, i) => {
+          const el = document.createElement('div');
+          el.className = 'carousel-item';
+          el.innerHTML = `<div class="w-icon">${item.icon}</div><div class="w-name">${item.name}</div><div class="w-type">${item.type}</div>`;
+          el.onclick = () => goTo(i);
+          track.appendChild(el);
+        });
+      }
+
+      const refreshed = track.querySelectorAll('.carousel-item');
+      refreshed.forEach((el, i) => {
+        let offset = i - activeIndex;
+        let visualPos;
+        if (offset === 0) visualPos = 2;
+        else if (offset === 1 || offset === -4) visualPos = 3;
+        else if (offset === -1 || offset === 4) visualPos = 1;
+        else if (offset === 2 || offset === -3) visualPos = 4;
+        else if (offset === -2 || offset === 3) visualPos = 0;
+        el.className = 'carousel-item ' + positions[visualPos];
+      });
+
+      document.getElementById('p4SelRow').innerHTML = '<span class="dot"></span> 已選擇：<strong>' + items[activeIndex].label + '</strong>';
+    }
+
+    function goTo(idx) { activeIndex = idx; updateView(); }
+
+    let touchStartX = 0;
+    const carousel = document.getElementById('p4Carousel');
+    carousel.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+    carousel.addEventListener('touchend', (e) => {
+      const diff = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) activeIndex = (activeIndex - 1 + total) % total;
+        else activeIndex = (activeIndex + 1) % total;
+        updateView();
+      }
+    });
+
+    buildCarousel();
+  })();
+
+  /* ==========================================
+     P5 — PHOTO CAPTURE
+     ========================================== */
+  (function() {
+    const camFrame = document.getElementById('camFrame');
+    const countdownOverlay = document.getElementById('countdownOverlay');
+    const countdownNum = document.getElementById('countdownNum');
+    const flash = document.getElementById('flash');
+    const captureBtn = document.getElementById('captureBtn');
+    const postActions = document.getElementById('postActions');
+    const bottomHint = document.getElementById('bottomHint');
+    const bottomStatus = document.getElementById('bottomStatus');
+
+    let isCounting = false;
+
+    window.startCapture = async function() {
+      if (isCounting) return;
+      isCounting = true;
+
+      captureBtn.style.opacity = '0';
+      captureBtn.style.pointerEvents = 'none';
+
+      const nums = ['3', '2', '1'];
+      for (const num of nums) {
+        countdownOverlay.classList.add('active');
+        countdownNum.textContent = num;
+        countdownNum.classList.add('show');
+        bottomHint.textContent = '📸 ' + num + '... 保持微笑 😊';
+        await sleep(800);
+        countdownNum.classList.remove('show');
+        await sleep(200);
+      }
+
+      flash.style.opacity = '1';
+      await sleep(150);
+      flash.style.opacity = '0';
+
+      countdownOverlay.classList.remove('active');
+      countdownNum.classList.remove('show');
+      bottomHint.textContent = '已拍攝！你滿意這張照片嗎？';
+      bottomStatus.innerHTML = '<span class="dot"></span> 已拍攝：<strong>HIMTOS</strong> · 等待確認';
+
+      postActions.classList.add('visible');
+      isCounting = false;
+    };
+
+    window.resetCapture = function() {
+      postActions.classList.remove('visible');
+      captureBtn.style.opacity = '1';
+      captureBtn.style.pointerEvents = 'auto';
+      bottomHint.textContent = '㩒中間圓形快門掣開始拍照';
+      bottomStatus.innerHTML = '<span class="dot"></span> 準備拍攝：<strong>HIMTOS</strong> · 🔥 KATANA';
+      isCounting = false;
+    };
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  })();
+
+  /* ==========================================
+     P6 — RESULT (loading simulation + card)
+     ========================================== */
+  (function() {
+    const progressFill = document.getElementById('progressFill');
+    const progressPct = document.getElementById('progressPct');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingSub = document.getElementById('loadingSub');
+    const triviaLine = document.getElementById('triviaLine');
+    const phaseLoading = document.getElementById('phaseLoading');
+    const phaseResult = document.getElementById('phaseResult');
+    const topStatus = document.getElementById('topStatus');
+    const cardPreview = document.getElementById('cardPreview');
+
+    let progress = 0;
+    const trivias = [
+      '「契約者登錄中...」',
+      '「AI 正在生成你的角色立繪...」',
+      '「csl. 5G 高速運算中...」',
+      '「混入少少黃金粒子...」',
+      '「即將完成！」'
+    ];
+
+    window.simulateProgress = function() {
+      progress = 0;
+      phaseLoading.classList.remove('hidden');
+      phaseResult.classList.remove('visible');
+      topStatus.innerHTML = '⚡ <em>AI</em> 生成中';
+      // Show actual generated card front
+      cardPreview.innerHTML = '<img src="card_front_preview.png" style="width:100%;height:100%;object-fit:cover;display:block;">';
+
+      const s1 = document.getElementById('s1');
+      const s2 = document.getElementById('s2');
+      const s3 = document.getElementById('s3');
+      s1.className = 'stage active';
+      s2.className = 'stage';
+      s3.className = 'stage';
+      loadingTitle.textContent = '5G 傳輸中';
+      loadingSub.innerHTML = '經 csl. 5G 網絡傳送中...<br>請稍候';
+
+      let triviaIdx = 0;
+      const triviaInterval = setInterval(() => {
+        triviaIdx = (triviaIdx + 1) % trivias.length;
+        triviaLine.textContent = trivias[triviaIdx];
+      }, 1200);
+
+      const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 100) progress = 100;
+
+        progressFill.style.width = progress + '%';
+        progressPct.textContent = Math.floor(progress) + '%';
+
+        if (progress <= 40) {
+          s1.className = 'stage active';
+          s2.className = 'stage';
+          s3.className = 'stage';
+          loadingTitle.textContent = '5G 傳輸中';
+          loadingSub.innerHTML = '經 csl. 5G 網絡傳送中...<br>請稍候';
+        } else if (progress <= 85) {
+          s1.className = 'stage done';
+          s2.className = 'stage active';
+          s3.className = 'stage';
+          loadingTitle.textContent = 'AI 生成中';
+          loadingSub.innerHTML = 'AI 正在創作你的契約者立繪...<br>混入少少黃金粒子✨';
+        } else {
+          s1.className = 'stage done';
+          s2.className = 'stage done';
+          s3.className = 'stage active';
+          loadingTitle.textContent = 'COMPLETING';
+          loadingSub.innerHTML = '做最後潤飾...<br>你的契約者身份即將解鎖';
+        }
+
+        if (progress >= 100) {
+          clearInterval(interval);
+          clearInterval(triviaInterval);
+          s3.className = 'stage done';
+          setTimeout(() => {
+            phaseLoading.classList.add('hidden');
+            phaseResult.classList.add('visible');
+            topStatus.innerHTML = '✅ 完成';
+          }, 500);
+        }
+      }, 400);
+    };
+
+    window.flipCard = function() {
+      if (cardPreview.innerHTML.includes('card_front_preview')) {
+        cardPreview.innerHTML = '<img src="card_back_preview.png" style="width:100%;height:100%;object-fit:cover;display:block;">';
+      } else {
+        cardPreview.innerHTML = '<img src="card_front_preview.png" style="width:100%;height:100%;object-fit:cover;display:block;">';
+      }
+    };
+  })();
+
+  /* ==========================================
+     P2 next button also responds to P2's next
+     ========================================== */
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sync initial arrow states
+    document.getElementById('navPrev').classList.add('disabled');
+  });
+</script>
+</body>
+</html>
